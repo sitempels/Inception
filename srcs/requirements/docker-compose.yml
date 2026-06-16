@@ -1,0 +1,18 @@
+service:
+  nginx:
+    image: nginx:alpine:latest
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+#    config:
+#    secrets:
+#    environment:
+    networks:
+     - inception
+    depends_on:
+      - site
+
+networks:
+  inception:
+    driver: bridge
