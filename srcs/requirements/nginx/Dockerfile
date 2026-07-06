@@ -1,0 +1,9 @@
+FROM alpine:3.23
+
+RUN apk update && apk add --no-cache nginx envsubst
+RUN rm /etc/nginx/http.d/default.conf
+run mdkir -p /run/nginx
+COPY entrypoint.sh /home/
+RUN chmod +x /home/entrypoint.sh
+WORKDIR /home
+CMD ["sh", "entrypoint.sh"]

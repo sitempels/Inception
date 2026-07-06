@@ -1,17 +1,20 @@
-service:
+services:
   nginx:
-    image: nginx:alpine:latest
+    image: nginx
+    build:
+      context: nginx
+      dockerfile: Dockerfile
     ports:
       - "8080:80"
       - "8443:443"
-    volumes:
+#    volumes:
 #    config:
 #    secrets:
 #    environment:
     networks:
      - inception
-    depends_on:
-      - site
+#    depends_on:
+#      - site
 
 networks:
   inception:
