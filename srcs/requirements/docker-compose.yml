@@ -4,18 +4,69 @@ services:
     build:
       context: nginx
       dockerfile: Dockerfile
+    container_name: nginx
     ports:
-      - "8080:80"
-      - "8443:443"
-#    volumes:
-#    config:
-#    secrets:
-#    environment:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - wordpress_data:/var/www/${DOMAIN_NAME}
+    secrets:
+      - nginx_crt
+      - nginx_key
     networks:
      - inception
-#    depends_on:
-#      - site
+    restart: always
+  
+  mariadb:
+    image: mariadb
+    build:
+      context: mariadb
+      dockerfile: Dockerfile
+    container_name: mariadb
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD","mariadb-admin","ping","-h","localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: always
+
+  wordpress:
+    image: wordpress
+    build:
+      context: wordpress
+      dockerfile: Dockerfile
+    container_name: wordpress
+    volumes:
+      - wordpress_data:/var/www/${DOMAIN_NAME}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/${USER}/data/mariadb'
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/${USER}/data/wordpress'
+
+secrets:
+  nginx_crt:
+    file: /home/certs/nginx_crt
+  nginx_key:
+    file: /home/certs/nginx_key
 
 networks:
   inception:
     driver: bridge
+
