@@ -62,9 +62,9 @@ volumes:
 
 secrets:
   nginx_crt:
-    file: /home/certs/nginx_crt
+    file: certs/nginx_crt
   nginx_key:
-    file: /home/certs/nginx_key
+    file: certs/nginx_key
 
 networks:
   inception:
