@@ -1,6 +1,6 @@
+name: inception
 services:
   nginx:
-    image: nginx
     build:
       context: nginx
       dockerfile: Dockerfile
@@ -10,15 +10,14 @@ services:
       - "443:443"
     volumes:
       - wordpress_data:/var/www/${DOMAIN_NAME}
-    secrets:
-      - nginx_crt
-      - nginx_key
+#    secrets:
+#      - nginx_crt
+#      - nginx_key
     networks:
      - inception
     restart: always
   
   mariadb:
-    image: mariadb
     build:
       context: mariadb
       dockerfile: Dockerfile
@@ -34,7 +33,6 @@ services:
     restart: always
 
   wordpress:
-    image: wordpress
     build:
       context: wordpress
       dockerfile: Dockerfile
@@ -60,11 +58,11 @@ volumes:
       o: 'bind'
       device: '/home/${USER}/data/wordpress'
 
-secrets:
-  nginx_crt:
-    file: certs/nginx_crt
-  nginx_key:
-    file: certs/nginx_key
+#secrets:
+#  nginx_crt:
+#    file: certs/nginx_crt
+#  nginx_key:
+#    file: certs/nginx_key
 
 networks:
   inception:
