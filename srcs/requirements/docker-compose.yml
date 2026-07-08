@@ -24,6 +24,10 @@ services:
     container_name: mariadb
     volumes:
       - mariadb_data:/var/lib/mysql
+	environment:
+	  - MYSQL_ROOT_PASSWORD:
+      - MYSQL_USER:
+	  - MYSQL_PASSWORD:
     healthcheck:
       test: ["CMD","mariadb-admin","ping","-h","localhost"]
       interval: 5s
@@ -39,6 +43,16 @@ services:
     container_name: wordpress
     volumes:
       - wordpress_data:/var/www/${DOMAIN_NAME}
+	configs:
+	  - MARIADB_DATABASE:
+	  - MYSQL_USER:
+	  - MYSQL_PASSWORD:
+	  - WP_ADMIN_USER:
+	  - WP_ADMIN_PASSWORD:
+	  - WP_ADMIN_EMAIL:
+	  - WP_USER
+	  - WP_USER_EMAIL:
+	  - WP_USER_PASSWORD:
     depends_on:
       mariadb:
         condition: service_healthy
