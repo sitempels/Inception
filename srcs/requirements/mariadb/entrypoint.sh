@@ -9,7 +9,7 @@ fi
 
 if [ ! -d /var/lib/mysql/mysql ]; then
   echo "[$SCRIPT_NAME][INFO] Initialising database dir"
-  mariadb-install-db --user=mysql --datadir=/var/run/lib/mysql
+  mariadb-install-db --user=mysql --datadir=/var/lib/mysql
 fi
 echo "[$SCRIPT_NAME][INFO] Configuring database"
 tmpfile=`mktemp`
@@ -18,13 +18,13 @@ USE mysql;
 FLUSH PRIVILEGES;
 CREATE DATABASE IF NOT EXISTS wordpress;
 ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';
-CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%'IDENTIFIED BY '$MYSQL_PASSWORD';
-GRANT ALL PRIVILEGES ON wordpress * TO '$MYSQL_USER'@'%';
+CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
+GRANT ALL PRIVILEGES ON wordpress.* TO '$MYSQL_USER'@'%';
 FLUSH PRIVILEGES;
 EOF
-mariadb --user=mysql --datadir-/var/lib/mysql --bootstrap < $tmpfile
+mariadbd --user=mysql --datadir=/var/lib/mysql --bootstrap < "$tmpfile"
 rm -f $tmpfile
-exec mariadb \
+exec mariadbd \
     --user=mysql \
     --datadir=/var/lib/mysql \
     --console \

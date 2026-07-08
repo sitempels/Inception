@@ -60,9 +60,9 @@ volumes:
 
 secrets:
   nginx_crt:
-    file: /home/stempels/inception/docker_certs/nginx.crt
+    file: ${CERT_DIR}/nginx.crt
   nginx_key:
-    file: /home/stempels/inception/docker_certs/nginx.key
+    file: ${CERT_DIR}/nginx.key
 
 networks:
   inception:

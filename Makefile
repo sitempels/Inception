@@ -13,4 +13,17 @@ setup:
 		bash cert_creation.sh $(CERT_DIR) $(IP) nginx; \
 	fi
 up:
-	DOMAIN_NAME=$(DOMAIN_NAME) docker compose -f ./srcs/requirements/docker-compose.yml up
+	DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) docker compose -f ./srcs/requirements/docker-compose.yml -d up
+
+down:
+	docker compose inception down
+
+clean:
+	docker stop $$(docker ps -aq)
+	docker rm $$(docker ps -aq)
+	docker image rm $$(docker image ls -q)
+
+fclean: clean
+	docker volume rm $$(docker volume ls -q)
+
+.PHONY: all re clean fclean
