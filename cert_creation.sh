@@ -1,4 +1,4 @@
-#!/bin/bah
+#!/bin/bash
 SCRIPT_NAME="${0##*/}"
 
 #Safeguard
@@ -13,7 +13,7 @@ fi
 CA_DIR=$1
 SUBJ=$2
 CERT_NAME=$3
-CERT_DIR="$HOME/certs/"
+CERT_DIR="$HOME/docker_certs/"
 mkdir -p ${CERT_DIR}
 cd ${CERT_DIR}
 

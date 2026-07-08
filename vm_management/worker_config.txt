@@ -1,2 +1,0 @@
-BASE_DIR=/home/stempels/sgoinfre/students/stempels/
-VM_DIR=/home/stempels/goinfre/
