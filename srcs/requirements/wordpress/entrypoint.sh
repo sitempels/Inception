@@ -6,7 +6,7 @@ MAX_RETRIES=5
 echo "[$SCRIPT_NAME][INFO] Checking MariaDB connection"
 COUNT=0;
 while ! mariadb-admin ping -h"mariadb" --port=3306 --silent; do
-  $COUNT=$((COUNT + 1))
+  COUNT=$((COUNT + 1))
   if [ $COUNT -ge $MAX_RETRIES ]; then
     echo "[$SCRIPT_NAME][ERROR] No response of MariaDB after $MAX_RETRIES seconds. Stopping"
     exit 1
@@ -15,6 +15,7 @@ while ! mariadb-admin ping -h"mariadb" --port=3306 --silent; do
 done
 if [ ! -f /var/www/$DOMAIN_NAME/wp-settings.php ]; then
   echo "[$SCRIPT_NAME][INFO] Installing wordpress"
+  mkdir -p /var/www/$DOMAIN_NAME
   wp core download --path=/var/www/$DOMAIN_NAME --allow-root
   wp config create \
     --dbname=$MARIADB_DATABASE \
@@ -34,7 +35,7 @@ if [ ! -f /var/www/$DOMAIN_NAME/wp-settings.php ]; then
   wp user create $WP_USER $WP_USER_EMAIL \
     --user_pass=$WP_USER_PASSWORD \
     --role=author \
-    --path=/var/www/html \
+    --path=/var/www/$DOMAIN_NAME \
     --allow-root
 fi
 chown -R nobody:nobody /var/www/$DOMAIN_NAME
