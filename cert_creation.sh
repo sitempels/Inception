@@ -1,5 +1,6 @@
 #!/bin/bash
 SCRIPT_NAME="${0##*/}"
+LOCATION=$(pwd)
 
 #Safeguard
 set -euo pipefail
@@ -13,7 +14,7 @@ fi
 CA_DIR=$1
 SUBJ=$2
 CERT_NAME=$3
-CERT_DIR="$HOME/docker_certs/"
+CERT_DIR="${LOCATION}/certs/"
 mkdir -p ${CERT_DIR}
 cd ${CERT_DIR}
 
@@ -59,7 +60,7 @@ fi
 #Sig certification
 if [ ! -f ${CERT_NAME}.crt ]; then
     echo "[$SCRIPT_NAME] signing ${CERT_NAME} certificate"
-    doas openssl x509 -req \
+    openssl x509 -req \
 	    -in ${CERT_NAME}.csr \
 	    -CA ${CA_DIR}/ca.crt \
 	    -CAkey ${CA_DIR}/ca.key \
