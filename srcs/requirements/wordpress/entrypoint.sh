@@ -17,6 +17,7 @@ if [ ! -f /var/www/$DOMAIN_NAME/wp-settings.php ]; then
   echo "[$SCRIPT_NAME][INFO] Installing wordpress"
   mkdir -p /var/www/$DOMAIN_NAME
   wp core download --path=/var/www/$DOMAIN_NAME --allow-root
+  echo "[$SCRIPT_NAME][INFO] Creating config"
   wp config create \
     --dbname=$MARIADB_DATABASE \
     --dbuser=$MYSQL_USER \
@@ -24,6 +25,7 @@ if [ ! -f /var/www/$DOMAIN_NAME/wp-settings.php ]; then
     --dbhost=mariadb \
     --path=/var/www/$DOMAIN_NAME \
     --allow-root
+  echo "[$SCRIPT_NAME][INFO] Installing core"
   wp core install \
     --url=$DOMAIN_NAME \
     --title="Inception" \
@@ -32,6 +34,7 @@ if [ ! -f /var/www/$DOMAIN_NAME/wp-settings.php ]; then
     --admin_email=$WP_ADMIN_EMAIL \
     --path=/var/www/$DOMAIN_NAME \
     --allow-root
+  echo "[$SCRIPT_NAME][INFO] Creating User"
   wp user create $WP_USER $WP_USER_EMAIL \
     --user_pass=$WP_USER_PASSWORD \
     --role=author \
