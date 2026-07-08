@@ -13,10 +13,10 @@ RUN apk update && apk add --no-cache \
     php83-curl \
     mariadb-client
 RUN echo "memory_limit = 256M" >> /etc/php83/php.ini
-RUN sed -i 's/listen = 127.0.0.1:9000/listen = 90000/g' \
+RUN sed -i 's/listen = 127.0.0.1:9000/listen = 9000/g' \
     /etc/php83/php-fpm.d/www.conf
 RUN sed -i 's/;clear_env = no/clear_env = no/g' /etc/php83/php-fpm.d/www.conf
-RUN wget https://raw.githbusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+RUN wget -P https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
     chmod +x wp-cli.phar && \
     mv wp-cli.phar /usr/local/bin/wp
 COPY entrypoint.sh /home
