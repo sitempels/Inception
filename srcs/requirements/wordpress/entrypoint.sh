@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 set -e
 SCRIPT_NAME="${0##*/}"
 MAX_RETRIES=5
