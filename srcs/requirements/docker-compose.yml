@@ -29,6 +29,7 @@ services:
     environment:
       - DOMAIN_NAME="$DOMAIN_NAME"
     secrets:
+      - mariadb_database
       - mysql_root_password
       - mysql_user
       - mysql_user_password
@@ -84,7 +85,7 @@ secrets:
   nginx_key:
     file: ${CERT_DIR}/nginx.key
   mariadb_database:
-    file: ${SECRET_DIR}/mariadb_databases.secrets
+    file: ${SECRET_DIR}/mariadb_database.secrets
   mysql_root_password:
     file: ${SECRET_DIR}/mysql_root_password.secrets
   mysql_user:

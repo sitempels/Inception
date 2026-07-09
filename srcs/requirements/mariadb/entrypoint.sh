@@ -13,13 +13,14 @@ if [ ! -d /var/lib/mysql/mysql ]; then
 fi
 echo "[$SCRIPT_NAME][INFO] Configuring database"
 tmpfile=`mktemp`
+MARIADB_DATABASE=$(cat /run/secrets/mariadb_database)
 MYSQL_ROOT_PASSWORD=$(cat /run/secrets/mysql_root_password)
 MYSQL_USER=$(cat /run/secrets/mysql_user)
 MYSQL_USER_PASSWORD=$(cat /run/secrets/mysql_user_password)
 cat << EOF > $tmpfile
 USE mysql;
 FLUSH PRIVILEGES;
-CREATE DATABASE IF NOT EXISTS wordpress;
+CREATE DATABASE IF NOT EXISTS '$MARIADB_DATABASE';
 ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';
 CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_USER_PASSWORD';
 GRANT ALL PRIVILEGES ON wordpress.* TO '$MYSQL_USER'@'%';

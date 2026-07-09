@@ -1,7 +1,9 @@
 LOCATION:=$(shell pwd)
-CERT_DIR=$(LOCATION)/certs
-DOMAIN_NAME:=stempels.42.fr
 IP:=$(shell ip -4 route get 1.1.1.1 | awk '{for(i=1;i<=NF;i++) if($$i=="src") print $$(i+1)}')
+DOMAIN_NAME:=stempels.42.fr
+
+CERT_DIR=$(LOCATION)/certs
+
 SECRET_DIR:="secrets"
 SECRET_FILE:="$(SECRET_DIR)/secrets.env"
 
@@ -42,9 +44,7 @@ up:
 down:
 	docker compose down
 
-clean:
-	docker stop $$(docker ps -aq)
-	docker rm $$(docker ps -aq)
+clean: down
 	docker ps -a
 	docker image rm $$(docker image ls -q)
 	docker image ls
@@ -53,4 +53,6 @@ fclean: clean
 	docker volume rm $$(docker volume ls -q)
 	docker volume ls
 
-.PHONY: all certs secrets up down re clean fclean
+re: clean up
+
+.PHONY: all certs secrets up down clean fclean re 
