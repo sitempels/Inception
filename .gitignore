@@ -1,4 +1,5 @@
 .env
 secrets/*
 !secrets/template.env
+!secrets/*.sh
 !**/**.gitkeep
