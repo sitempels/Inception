@@ -11,7 +11,7 @@ services:
     volumes:
       - wordpress_data:/var/www/${DOMAIN_NAME}
     environment:
-      - DOMAIN_NAME="$DOMAIN_NAME"
+      - DOMAIN_NAME=$DOMAIN_NAME
     secrets:
       - nginx_crt
       - nginx_key
@@ -27,7 +27,7 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
     environment:
-      - DOMAIN_NAME="$DOMAIN_NAME"
+      - DOMAIN_NAME=$DOMAIN_NAME
     secrets:
       - mariadb_database
       - mysql_root_password
@@ -49,7 +49,7 @@ services:
     volumes:
       - wordpress_data:/var/www/${DOMAIN_NAME}
     environment:
-      - DOMAIN_NAME="$DOMAIN_NAME"
+      - DOMAIN_NAME=$DOMAIN_NAME
     secrets:
       - mariadb_database
       - mysql_user
