@@ -39,6 +39,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+     - inception
     restart: always
 
   wordpress:
@@ -63,6 +65,8 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
+    networks:
+     - inception
     restart: always
 
 volumes:
