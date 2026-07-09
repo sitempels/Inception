@@ -15,7 +15,7 @@ WP_USER_PASSWORD=$(cat /run/secrets/wp_user_password)
 
 echo "[$SCRIPT_NAME][INFO] Checking MariaDB connection"
 COUNT=0;
-while ! mariadb-admin ping -h"mariadb" -u"$MYSQL_USER" -p "$MYSQL_USER_PASSWORD" --port=3306 --silent; do
+while ! mariadb-admin ping -h"mariadb" -u$MYSQL_USER -p$MYSQL_USER_PASSWORD --port=3306 --silent; do
   COUNT=$((COUNT + 1))
   if [ $COUNT -ge $MAX_RETRIES ]; then
     echo "[$SCRIPT_NAME][ERROR] No response of MariaDB after $MAX_RETRIES seconds. Stopping"
