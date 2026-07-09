@@ -10,6 +10,8 @@ services:
       - "443:443"
     volumes:
       - wordpress_data:/var/www/${DOMAIN_NAME}
+    environment:
+      - DOMAIN_NAME="$DOMAIN_NAME"
     secrets:
       - nginx_crt
       - nginx_key
@@ -25,9 +27,11 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
     environment:
-	  - MYSQL_ROOT_PASSWORD:
-      - MYSQL_USER:
-	  - MYSQL_PASSWORD:
+      - DOMAIN_NAME="$DOMAIN_NAME"
+    secrets:
+      - mysql_root_password
+      - mysql_user
+      - mysql_user_password
     healthcheck:
       test: ["CMD","mariadb-admin","ping","-h","localhost"]
       interval: 5s
@@ -43,16 +47,18 @@ services:
     container_name: wordpress
     volumes:
       - wordpress_data:/var/www/${DOMAIN_NAME}
-    configs:
-	  - MARIADB_DATABASE:
-	  - MYSQL_USER:
-	  - MYSQL_PASSWORD:
-	  - WP_ADMIN_USER:
-	  - WP_ADMIN_PASSWORD:
-	  - WP_ADMIN_EMAIL:
-	  - WP_USER
-	  - WP_USER_EMAIL:
-	  - WP_USER_PASSWORD:
+    environment:
+      - DOMAIN_NAME="$DOMAIN_NAME"
+    secrets:
+      - mariadb_database
+      - mysql_user
+      - mysql_user_password
+      - wp_admin_user
+      - wp_admin_password
+      - wp_admin_email
+      - wp_user
+      - wp_user_password
+      - wp_user_email
     depends_on:
       mariadb:
         condition: service_healthy
@@ -77,6 +83,26 @@ secrets:
     file: ${CERT_DIR}/nginx.crt
   nginx_key:
     file: ${CERT_DIR}/nginx.key
+  mariadb_database:
+    file: ${SECRET_DIR}/mariadb_databases.secrets
+  mysql_root_password:
+    file: ${SECRET_DIR}/mysql_root_password.secrets
+  mysql_user:
+    file: ${SECRET_DIR}/mysql_user.secrets
+  mysql_user_password:
+    file: ${SECRET_DIR}/mysql_user_password.secrets
+  wp_admin_user:
+    file: ${SECRET_DIR}/wp_admin_user.secrets
+  wp_admin_password:
+    file: ${SECRET_DIR}/wp_admin_password.secrets
+  wp_admin_email:
+    file: ${SECRET_DIR}/wp_admin_email.secrets
+  wp_user:
+    file: ${SECRET_DIR}/wp_user.secrets
+  wp_user_password:
+    file: ${SECRET_DIR}/wp_user_password.secrets
+  wp_user_email:
+    file: ${SECRET_DIR}/wp_user_email.secrets
 
 networks:
   inception:
