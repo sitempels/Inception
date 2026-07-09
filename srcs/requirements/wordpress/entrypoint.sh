@@ -3,17 +3,6 @@ set -e
 SCRIPT_NAME="${0##*/}"
 MAX_RETRIES=5
 
-echo "[$SCRIPT_NAME][INFO] Checking MariaDB connection"
-COUNT=0;
-while ! mariadb-admin ping -h"mariadb" --port=3306 --silent; do
-  COUNT=$((COUNT + 1))
-  if [ $COUNT -ge $MAX_RETRIES ]; then
-    echo "[$SCRIPT_NAME][ERROR] No response of MariaDB after $MAX_RETRIES seconds. Stopping"
-    exit 1
-  fi
-  sleep 1
-done
-
 MARIADB_DATABASE=$(cat /run/secrets/mariadb_database)
 MYSQL_USER=$(cat /run/secrets/mysql_user)
 MYSQL_USER_PASSWORD=$(cat /run/secrets/mysql_user_password)
@@ -23,6 +12,17 @@ WP_ADMIN_EMAIL=$(cat /run/secrets/wp_admin_email)
 WP_USER=$(cat /run/secrets/wp_user)
 WP_USER_EMAIL=$(cat /run/secrets/wp_user_email)
 WP_USER_PASSWORD=$(cat /run/secrets/wp_user_password)
+
+echo "[$SCRIPT_NAME][INFO] Checking MariaDB connection"
+COUNT=0;
+while ! mariadb-admin ping -h"mariadb" -u"$MYSQL_USER" -p "$MYSQL_USER_PASSWORD" --port=3306 --silent; do
+  COUNT=$((COUNT + 1))
+  if [ $COUNT -ge $MAX_RETRIES ]; then
+    echo "[$SCRIPT_NAME][ERROR] No response of MariaDB after $MAX_RETRIES seconds. Stopping"
+    exit 1
+  fi
+  sleep 1
+done
 
 if [ ! -f /var/www/$DOMAIN_NAME/wp-settings.php ]; then
   echo "[$SCRIPT_NAME][INFO] Installing wordpress"

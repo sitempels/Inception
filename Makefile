@@ -4,7 +4,7 @@ DOMAIN_NAME:=$(shell hostname)
 
 CERT_DIR=$(LOCATION)/certs
 
-SECRET_DIR:="secrets"
+SECRET_DIR:="$(LOCATION)/secrets"
 SECRET_FILE:="$(SECRET_DIR)/secrets.env"
 
 all: certs secrets up
@@ -41,10 +41,10 @@ secrets:
 up:
 	@mkdir -p "/home/$(USER)/data/mariadb"
 	@mkdir -p "/home/$(USER)/data/wordpress"
-	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f ./srcs/requirements/docker-compose.yml up --force-recreate 
+	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f ./srcs/requirements/docker-compose.yml up 
 
 down:
-	@docker compose down
+	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f ./srcs/requirements/docker-compose.yml down
 
 clean: down
 	@docker ps -a
