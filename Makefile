@@ -39,8 +39,8 @@ secrets:
 	@bash "$(SECRET_DIR)/create_secrets.sh" $(SECRET_FILE)
 
 up:
-	@mkdir -p "/home/stempels/data/mariadb"
-	@mkdir -p "/home/stempels/data/wordpress"
+	@mkdir -p "/home/$(USER)/data/mariadb"
+	@mkdir -p "/home/$(USER)/data/wordpress"
 	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) docker compose -f ./srcs/requirements/docker-compose.yml up --force-recreate 
 
 down:
