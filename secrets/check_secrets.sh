@@ -1,6 +1,6 @@
 #! /bin/bash
 SCRIPT_NAME="${0##*/}"
-LOCATION=$(pwd)
+LOCATION="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ $# -ne 1 ]; then
     echo "[$SCRIPT_NAME] Error: usage: $SCRIPT_NAME <secret_file_path>"

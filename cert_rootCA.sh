@@ -1,7 +1,7 @@
 #! /bin/bash
 
 SCRIPT_NAME="${0##*/}"
-LOCATION=$(pwd)
+LOCATION="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CERT_DIR=${LOCATION}/certs
 
 echo "[$SCRIPT_NAME] Setting up directory"

@@ -1,6 +1,6 @@
 #! /bin/bash
 SCRIPT_NAME="${0##*/}"
-LOCATION=$(pwd)
+LOCATION="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 #Safeguard
 set -euo pipefail

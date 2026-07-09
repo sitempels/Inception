@@ -54,6 +54,7 @@ clean: down
 fclean: clean
 	@docker volume rm $$(docker volume ls -q)
 	@docker volume ls
+	@sudo rm -rf "/home/$(USER)/data"
 
 re: clean up
 
