@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 SCRIPT_NAME="${0##*/}"
 LOCATION=$(pwd)
 

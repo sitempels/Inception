@@ -28,7 +28,7 @@ while IFS='=' read -r key value; do
     #Flag not set entries
     if [[ -z "$value" ]]; then
 	echo "Missing value for ${key}"
-	missing = true
+	missing=true
     fi 
 done < "$SECRETS_FILE"
 

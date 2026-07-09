@@ -24,7 +24,7 @@ services:
     container_name: mariadb
     volumes:
       - mariadb_data:/var/lib/mysql
-	environment:
+    environment:
 	  - MYSQL_ROOT_PASSWORD:
       - MYSQL_USER:
 	  - MYSQL_PASSWORD:
@@ -43,7 +43,7 @@ services:
     container_name: wordpress
     volumes:
       - wordpress_data:/var/www/${DOMAIN_NAME}
-	configs:
+    configs:
 	  - MARIADB_DATABASE:
 	  - MYSQL_USER:
 	  - MYSQL_PASSWORD:

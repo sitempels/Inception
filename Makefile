@@ -6,9 +6,10 @@ SECRET_DIR:="secrets"
 SECRET_FILE:="$(SECRET_DIR)/secrets.env"
 
 all: certs secrets up
+
 certs:
 	@mkdir -p $(CERT_DIR)
-	@if [ ! -f "cert_rootCA.sh"] || [ ! -f "cert_creation.sh" ]; then \
+	@if [ ! -f "cert_rootCA.sh" ] || [ ! -f "cert_creation.sh" ]; then \
 	    echo "Missing certificates handlers"; \
 	    exit 1; \
 	fi
@@ -22,18 +23,18 @@ certs:
 	fi
 
 secrets:
-	if [ ! -d "$(SECRET_DIR)" ]; then \
+	@if [ ! -d "$(SECRET_DIR)" ]; then \
 	    echo "Missing secrets directory"; \
 	    exit 1; \
 	fi
-	if [ ! -f "$(SECRET_DIR)"/create_secrets.sh ] || [ ! -f "$(SECRET_DIR)"/check_secrets.sh ]; then \
+	@if [ ! -f "$(SECRET_DIR)"/create_secrets.sh ] || [ ! -f "$(SECRET_DIR)"/check_secrets.sh ]; then \
 	    echo "Missing secrets handlers"; \
 	    exit 1; \
 	fi
-	chmod +x "$(SECRET_DIR)/check_secrets.sh"
-	bash "$(SECRET_DIR)/check_secrets.sh" $(SECRET_FILE)
-	chmod +x "$(SECRET_DIR)/create_secrets.sh"
-	bash "$(SECRET_DIR)/create_secrets.sh" $(SECRET_FILE)
+	@chmod +x "$(SECRET_DIR)/check_secrets.sh"
+	@bash "$(SECRET_DIR)/check_secrets.sh" $(SECRET_FILE)
+	@chmod +x "$(SECRET_DIR)/create_secrets.sh"
+	@bash "$(SECRET_DIR)/create_secrets.sh" $(SECRET_FILE)
 
 up:
 	DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) docker compose -f ./srcs/requirements/docker-compose.yml up --force-recreate 
@@ -52,4 +53,4 @@ fclean: clean
 	docker volume rm $$(docker volume ls -q)
 	docker volume ls
 
-.PHONY: all re clean fclean
+.PHONY: all certs secrets up down re clean fclean
