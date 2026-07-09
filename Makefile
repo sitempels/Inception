@@ -1,6 +1,6 @@
 LOCATION:=$(shell pwd)
 IP:=$(shell ip -4 route get 1.1.1.1 | awk '{for(i=1;i<=NF;i++) if($$i=="src") print $$(i+1)}')
-DOMAIN_NAME:=stempels.42.fr
+DOMAIN_NAME:=$(shell hostname)
 
 CERT_DIR=$(LOCATION)/certs
 
@@ -39,19 +39,21 @@ secrets:
 	@bash "$(SECRET_DIR)/create_secrets.sh" $(SECRET_FILE)
 
 up:
-	DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) docker compose -f ./srcs/requirements/docker-compose.yml up --force-recreate 
+	@mkdir -p "/home/stempels/data/mariadb"
+	@mkdir -p "/home/stempels/data/wordpress"
+	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) docker compose -f ./srcs/requirements/docker-compose.yml up --force-recreate 
 
 down:
-	docker compose down
+	@docker compose down
 
 clean: down
-	docker ps -a
-	docker image rm $$(docker image ls -q)
-	docker image ls
+	@docker ps -a
+	@docker image rm $$(docker image ls -q)
+	@docker image ls
 
 fclean: clean
-	docker volume rm $$(docker volume ls -q)
-	docker volume ls
+	@docker volume rm $$(docker volume ls -q)
+	@docker volume ls
 
 re: clean up
 
