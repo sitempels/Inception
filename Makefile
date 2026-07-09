@@ -41,7 +41,7 @@ secrets:
 up:
 	@mkdir -p "/home/$(USER)/data/mariadb"
 	@mkdir -p "/home/$(USER)/data/wordpress"
-	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) docker compose -f ./srcs/requirements/docker-compose.yml up --force-recreate 
+	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f ./srcs/requirements/docker-compose.yml up --force-recreate 
 
 down:
 	@docker compose down
