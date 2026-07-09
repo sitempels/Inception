@@ -5,6 +5,7 @@ IP:=$(shell ip -4 route get 1.1.1.1 | awk '{for(i=1;i<=NF;i++) if($$i=="src") pr
 SECRET_DIR:="secrets"
 SECRET_FILE:="$(SECRET_DIR)/secrets.env"
 
+all: certs secrets up
 certs:
 	@mkdir -p $(CERT_DIR)
 	@if [ ! -f "cert_rootCA.sh"] || [ ! -f "cert_creation.sh" ]; then \
@@ -38,7 +39,7 @@ up:
 	DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) docker compose -f ./srcs/requirements/docker-compose.yml up --force-recreate 
 
 down:
-	docker compose inception down
+	docker compose down
 
 clean:
 	docker stop $$(docker ps -aq)
