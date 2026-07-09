@@ -8,4 +8,4 @@ RUN chmod 755 /var/run/mysqld
 COPY entrypoint.sh /home/
 RUN chmod +x /home/entrypoint.sh
 WORKDIR /home
-CMD ["sh", "entrypoint.sh"]
+ENTRYPOINT ["sh", "entrypoint.sh"]
