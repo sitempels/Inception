@@ -3,18 +3,19 @@ SCRIPT_NAME="${0##*/}"
 LOCATION="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ $# -ne 1 ]; then
-    echo "[$SCRIPT_NAME] Error: usage: $SCRIPT_NAME <secret_file_path>"
+    echo "[$SCRIPT_NAME] Error: usage: $SCRIPT_NAME <env_file_absolute_path>"
     exit 1
 fi
 
 if [ ! -f $1 ]; then
     echo "[$SCRIPT_NAME] Error: file $1 not found"
+    echo "[$SCRIPT_NAME] Error: usage: $SCRIPT_NAME <env_file_absolute_path>"
     exit 1
 else
-    SECRETS_FILE="$1"
+    ENV_FILE="$1"
 fi	
 
-echo "[$SCRIPT_NAME] checking secrets file"
+echo "[$SCRIPT_NAME] checking env file"
 missing=false
 while IFS='=' read -r key value; do
     #Skip empty lines and comments
@@ -30,12 +31,12 @@ while IFS='=' read -r key value; do
 	echo "Missing value for ${key}"
 	missing=true
     fi 
-done < "$SECRETS_FILE"
+done < "$ENV_FILE"
 
 if $missing; then
-    echo "[$SCRIPT_NAME] One or more secrets value missing, please fill them"
+    echo "[$SCRIPT_NAME] One or more environment value missing, please set them"
     exit 1
 else
-    echo "[$SCRIPT_NAME] All secrets are set"
+    echo "[$SCRIPT_NAME] All environment variables are set"
     exit 0
 fi
