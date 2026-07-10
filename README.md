@@ -185,9 +185,9 @@ We deploy everything in a VM because we need sudo rigths.
 
 ```
 inception/
-├── Makefile			    # Build automation
-├── README.md			    # Project overview
-├── USER_DOC.md			    # User documentation
+├── Makefile                        # Build automation
+├── README.md                       # Project overview
+├── USER_DOC.md                     # User documentation
 ├── DEV_DOC.md                      # Developer documentation   
 ├── template_env                    # Template file for the .env
 ├── .env                            # Environment variables (NOT in Git)
