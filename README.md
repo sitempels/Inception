@@ -88,28 +88,28 @@ The user need:
 	In inception repository:
 
 	```bash
-	cat << 'EOF' > .env
-	# Is a comment and will be ignored
-	# Secrets SHOULD be prefixed with S_
+cat << 'EOF' > .env
+# Is a comment and will be ignored
+# Secrets SHOULD be prefixed with S_
 
-	# VM Config
-	NEW_HOSTNAME=
+# VM Config
+NEW_HOSTNAME=
 
-	# MYSQL SECRETS
-	S_MARIADB_DATABASE=
-	S_MYSQL_ROOT_PASSWORD=
-	S_MYSQL_USER=
-	S_MYSQL_USER_PASSWORD=
-	
-	# WORDPRESS SECRETS
-	S_WP_ADMIN_USER=
-	S_WP_ADMIN_PASSWORD=
-	S_WP_ADMIN_EMAIL=
-	S_WP_USER=
-	S_WP_USER_PASSWORD=
-	S_WP_USER_EMAIL=
+# MYSQL SECRETS
+S_MARIADB_DATABASE=
+S_MYSQL_ROOT_PASSWORD=
+S_MYSQL_USER=
+S_MYSQL_USER_PASSWORD=
+
+# WORDPRESS SECRETS
+S_WP_ADMIN_USER=
+S_WP_ADMIN_PASSWORD=
+S_WP_ADMIN_EMAIL=
+S_WP_USER=
+S_WP_USER_PASSWORD=
+S_WP_USER_EMAIL=
 EOF
-	```
+    ```
 	then 
 	```bash
 	make
