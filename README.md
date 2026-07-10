@@ -86,6 +86,7 @@ The user need:
 - **template_env do not exist:**
 
 	In inception repository:
+
 	```bash
 	cat << 'EOF' > .env
 	# Is a comment and will be ignored
