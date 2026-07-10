@@ -9,7 +9,7 @@ SECRET_DIR:="$(TOOLS_DIR)/secrets"
 ENV_FILE:="$(LOCATION)/.env"
 
 include .env.mk
-.env.mk: env
+.env.mk: .env env
 
 all: host certs secrets up
 
@@ -47,7 +47,17 @@ env:
 	@bash "$(TOOLS_DIR)/check_env.sh" $(ENV_FILE)
 	@chmod +x "$(TOOLS_DIR)/create_env.sh"
 	@bash "$(TOOLS_DIR)/create_env.sh" $(ENV_FILE) > .env.mk
-	
+
+.env:
+	@echo "Creating .env file, please set all variables"
+	@if [ -f template_env ]; then \
+		cp template_env	.env; \
+		vim -c 'set shortmess+=I' .env; \
+	else \
+		echo "Template_env file missing, you will need to create .env file yourself.\n See READ_ME for how to do it"; \
+		exit 1; \
+	fi
+
 secrets:
 	@mkdir -p $(SECRETS_DIR)
 	@if [ ! -f "$(TOOLS_DIR)"/create_secrets.sh ] || [ ! -f "$(TOOLS_DIR)"/check_env.sh ]; then \
