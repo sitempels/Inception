@@ -108,7 +108,8 @@ The user need:
 	S_WP_USER=
 	S_WP_USER_PASSWORD=
 	S_WP_USER_EMAIL=
-EOF
+	EOF
+ 
 	```
 	then 
 	```bash
