@@ -15,7 +15,7 @@ else
     ENV_FILE="$1"
 fi	
 
-echo "[$SCRIPT_NAME] creating env variables"
+echo "[$SCRIPT_NAME] creating env variables" >&2
 while IFS='=' read -r key value; do
     #Skip empty lines and comments
     [[ -z "${key// }" ]] && continue
@@ -33,4 +33,4 @@ while IFS='=' read -r key value; do
     printf '%s := %s\n' "$key" "$value"
 
 done < "$ENV_FILE"
-echo "[$SCRIPT_NAME] env variables created"
+echo "[$SCRIPT_NAME] env variables created" >&2

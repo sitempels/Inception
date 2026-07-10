@@ -15,12 +15,12 @@ all: host certs secrets up
 
 host: env
 	@if [ ! $(DOMAIN_NAME)==$(NEW_HOSTNAME) ]; then \
-	    sudo hostnamectl set-hostname $(NEW_HOSTNAME) \
-	    sudo sed -i "s/^127\.0\.1\.1.*/127.0.1.1\tnew-hostname/" /etc/hosts \
-	    sudo systemctl restart systemd-hostnamed \
-	    sudo systemctl restart ssh \
-	    DOMAIN_NAME=$(shell hostname) \
-	    @echo "Host name changed to: $(DOMAIN_NAME)" \
+	    sudo hostnamectl set-hostname $(NEW_HOSTNAME); \
+	    sudo sed -i "s/^127\.0\.1\.1.*/127.0.1.1\tnew-hostname/" /etc/hosts; \
+	    sudo systemctl restart systemd-hostnamed; \
+	    sudo systemctl restart ssh; \
+	    DOMAIN_NAME=$$(hostname); \
+	    echo "Host name changed to: $(DOMAIN_NAME)"; \
 	fi
 
 certs:
@@ -46,7 +46,7 @@ env:
 	@chmod +x "$(TOOLS_DIR)/check_env.sh"
 	@bash "$(TOOLS_DIR)/check_env.sh" $(ENV_FILE)
 	@chmod +x "$(TOOLS_DIR)/create_env.sh"
-	@source <($("$(TOOLS_DIR)/create_env.sh" $(ENV_FILE)))
+	@bash "$(TOOLS_DIR)/create_env.sh" $(ENV_FILE) > .env.mk
 	
 secrets:
 	@mkdir -p $(SECRETS_DIR)
