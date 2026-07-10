@@ -243,6 +243,7 @@ All code and documentation were reviewed and validated before inclusion.
 ## Authors
 
 **Author:** Simon Tempels
+
 **42 Login:** `stempels`
 
 
