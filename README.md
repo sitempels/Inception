@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by [Your Name], [Collaborator 1], [Collaborator 2]*
+*This project has been created as part of the 42 curriculum by stempels*
 
 # Inception
 
@@ -28,8 +28,8 @@ A system administration project focused on containerization using Docker and Doc
 - [Troubleshooting](#troubleshooting)
 
 **Additional Documentation:**
-- 📖 [User Documentation](USER_DOC.md) - Guide for end users and administrators
-- 🔧 [Developer Documentation](DEV_DOC.md) - Technical reference for developers
+- [User Documentation](USER_DOC.md) - Guide for end users and administrators
+- [Developer Documentation](DEV_DOC.md) - Technical reference for developers
 
 ---
 
@@ -40,7 +40,7 @@ Inception is a system administration project that sets up a small infrastructure
 ### Project Goals
 
 The main objectives are to:
-- Set up a multi-service infrastructure with **NGINX**, **WordPress + php-fpm**, and **MariaDB**
+- Set up a multi-service infrastructure with **NGINX**, **WordPress + php83-fpm**, and **MariaDB**
 - Build custom Docker images from scratch (no pulling from DockerHub except base OS images)
 - Implement secure HTTPS communication with **TLSv1.2/TLSv1.3 only**
 - Use Docker named volumes for persistent data storage
@@ -51,7 +51,7 @@ The main objectives are to:
 
 The infrastructure consists of:
 - **NGINX** container serving as the only entry point via port 443 (HTTPS)
-- **WordPress + php-fpm** container (without NGINX)
+- **WordPress + php83-fpm** container (without NGINX)
 - **MariaDB** database container (without NGINX)
 - **Two Docker named volumes** for persistent storage:
   - WordPress database data
@@ -76,55 +76,49 @@ All services run in dedicated containers, restart automatically on crash, and fo
 
 1. **Clone the repository:**
 ```bash
-git clone <repository-url>
+git clone <repository-url> inception
 cd inception
 ```
 
 2. **Set up environment variables:**
 ```bash
-# Copy the example environment file
-touch srcs/.env
+# Create the  environment file
+touch secrets/secrets.env
+Add and set the needed variables (see bellow)
 
-# Edit the .env file with your credentials
-vim srcs/.env
+# Import the secrets.env file from the host
+scp -P 2222 <secrets.env path> <vm_user>@localhost:/home/<vm_user>/inception/secrets
 ```
 
 **Important:** Never commit your `.env` file or any files containing credentials to Git!
 
-Your `.env` file should contain:
+Your `secrets.env` file should contain:
 ```bash
-DOMAIN_NAME=login.42.fr
-SQL_DATABASE=example_db
-SQL_USER=example_user
-SQL_PASSWORD=example_password
-SQL_ROOT_PASSWORD=example_root_password
+MYSQL_DATABASE=example_db
+MYSQL_USER=example_user
+MYSQL_PASSWORD=example_password
+MYSQL_ROOT_PASSWORD=example_root_password
 
-# 👑 WordPress administrator account (full access to the admin interface)
+#WordPress administrator account (full access to the admin interface)
 WP_ADMIN_USER=example_admin
 WP_ADMIN_PASSWORD=example_admin_password
 
-# email address is required but not critical since the site runs locally
-WP_ADMIN_EMAIL=[admin@example.org](mailto:admin@example.org)
+# email address is required but not usefull as no email service is set up
+WP_ADMIN_EMAIL=admin@somemail.com
 
-# 👤 Secondary WordPress user (limited permissions, role = author)
+# Secondary WordPress user (limited permissions, role = author)
 WP_USER=example_username
 WP_USER_PASSWORD=example_user_password
 
 # this email must be different from the admin one
-WP_USER_EMAIL=[user@example.xyz](mailto:user@example.xyz)
-
-# 📂 Volumes - Local paths used to store MariaDB and WordPress data
-SQL_DATA_PATH=/home/login/data/mysql
-WP_DATA_PATH=/home/login/data/wordpress
-
-
+WP_USER_EMAIL=user@somemail.be
 ```
 
 3. **That's it!** The Makefile will automatically:
-   - ✅ Verify and update your `.env` file with the correct user paths
-   - ✅ Add your domain to `/etc/hosts` 
-   - ✅ Create the required volume directories
-   - ✅ Build and start all containers
+   - Verify `secrets.env` for any unset variables
+   - Create the required volume directories
+   - Create the needed certificates
+   - Build and start all containers
 
 Just run `make` and everything is handled for you!
 
@@ -133,43 +127,45 @@ Just run `make` and everything is handled for you!
 
 ### Makefile Automation
 
-The project includes an intelligent Makefile that automates setup and management:
+The project includes an Makefile that automates setup and management:
 
 **Automatic Tasks:**
-- ✅ **Environment validation** (`check-env`): Verifies `.env` exists and updates user paths automatically
-- ✅ **Domain configuration** (`hosts`): Adds domain to `/etc/hosts` if not already present
-- ✅ **Directory creation** (`init`): Creates required volume directories on host
-- ✅ **Visual feedback**: Color-coded output and ASCII logo for better UX
+- **Secrets validation** (`secrets`): Verifies `secrets.env` exists and verify for any unset variables (does not check if variables are missing)
+- **Domain configuration** (`hosts`): Adds domain to `/etc/hosts` if not already present
+- **Certificate creation** (`certs`): Create the needed certificates for the TSL connection
 
 **Start the entire infrastructure (recommended):**
 ```bash
 make
-# This runs: check-env → hosts → logo → build → up
-# Automatically handles environment verification, domain setup, and container startup
+# This runs: host certs secrets up
+# Automatically handles domain setup, certificates creation, secrets setup and container startup
 ```
 
 **Individual commands:**
 
 ```bash
-# Verify .env file and update paths
-make check-env
+# Verify secrets.env file and create secrets files
+make secrets
 
 # Add domain to /etc/hosts
-make hosts
-
-# Create volume directories
-make init
+make host
 
 # Build Docker images only
 make build
 
-# Start containers only (requires build first)
+# Start containers and build images if needed
 make up
 
-# Stop containers (keeps data)
+# Start existing containers
+make start
+
+# Stop containers (keeps containers, datas and images)
+make stop
+
+# Stop and remove containers (keep datas and images)
 make down
 
-# Stop and remove containers
+# Stop and remove containers (keep datas)
 make clean
 
 # Full cleanup (removes containers, images, volumes, and data)
@@ -190,12 +186,6 @@ docker compose -f srcs/docker-compose.yml logs -f
 docker compose -f srcs/docker-compose.yml logs -f nginx
 ```
 
-**Quick reference:**
-- `make` → Complete setup and start (use this for first time)
-- `make down` → Stop (keeps data)
-- `make up` → Start again (preserves data)
-- `make re` → Fresh start (deletes all data)
-
 ### Accessing the Application
 
 Once the containers are running:
@@ -208,7 +198,7 @@ Once the containers are running:
 - URL: `https://login.42.fr/wp-admin`
 - Use the credentials from your `.env` file
 
-**Note:** The infrastructure uses HTTPS only with TLSv1.2/TLSv1.3. HTTP connections on port 80 are not available.
+**Note:** The infrastructure uses HTTPS only with TLSv1.2/TLSv1.3. HTTP connections on port 80 redirect to port 443.
 
 **Verify services are running:**
 ```bash
@@ -560,8 +550,8 @@ If you encounter issues:
 
 ## Authors
 
-**Project created by:** Dylan Bajeux
-**42 Login:** dbajeux  
+**Project created by:** Simon Tempels
+**42 Login:** stempels
 
 
 ## License
@@ -571,6 +561,6 @@ For educational purposes only.
 
 ---
 
-**Last Updated:** February 2026  
+**Last Updated:** July 2026  
 **Project:** Inception  
 **School:** 42
