@@ -15,6 +15,10 @@ It aims to broaden our knowledge of system administration by using Docker and a 
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
 - [Technical Comparisons](#technical-comparisons)
+  - [Virtual Machines vs Docker](#Virtual Machines vs Docker)
+  - [Secrets vs Environments Variables](#Secrets vs Environment Variables)
+  - [Docker Network vs Host Network](#Docker Network vs Host Network)
+  - [Docker Volumes vs Bind Mount](#Docker Volumes vs Bind Mount)
 - [Project Structure](#project-structure)
 - [Resources](#resources)
 
