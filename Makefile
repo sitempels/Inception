@@ -7,6 +7,7 @@ TOOLS_DIR=$(LOCATION)/tools
 CERT_DIR=$(TOOLS_DIR)/certs
 SECRET_DIR:="$(TOOLS_DIR)/secrets"
 ENV_FILE:="$(LOCATION)/.env"
+COMPOSE_FILE:="$(LOCATION)"/srcs/docker-compose.yml 
 
 include .env.mk
 .env.mk: .env env
@@ -49,8 +50,8 @@ env:
 	@bash "$(TOOLS_DIR)/create_env.sh" $(ENV_FILE) > .env.mk
 
 .env:
-	@echo "Creating .env file, please set all variables"
 	@if [ -f template_env ]; then \
+		echo "Creating .env file, please set all variables"
 		cp template_env	.env; \
 		vim -c 'set shortmess+=I' .env; \
 	else \
@@ -70,21 +71,21 @@ secrets:
 	@bash "$(TOOLS_DIR)/create_secrets.sh" $(ENV_FILE)
 
 build:
-	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f ./srcs/requirements/docker-compose.yml build
+	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f $(COMPOSE_FILE) build
 
 up:
 	@mkdir -p "/home/$(USER)/data/mariadb"
 	@mkdir -p "/home/$(USER)/data/wordpress"
-	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f ./srcs/requirements/docker-compose.yml up -d
+	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f $(COMPOSE_FILE) up -d
 
 down:
-	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f ./srcs/requirements/docker-compose.yml down
+	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f $(COMPOSE_FILE) down
 
 start:
-	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f ./srcs/requirements/docker-compose.yml start
+	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f $(COMPOSE_FILE) start
 
 stop:
-	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f ./srcs/requirements/docker-compose.yml stop
+	@DOMAIN_NAME=$(DOMAIN_NAME) CERT_DIR=$(CERT_DIR) SECRET_DIR=$(SECRET_DIR) docker compose -f $(COMPOSE_FILE) stop
 
 clean: down
 	@docker ps -a
