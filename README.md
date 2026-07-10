@@ -68,10 +68,10 @@ The user need:
 ### Installation
 
 1. **Clone the repository:**
-	```bash
-	git clone <repository_url> inception
-	cd inception
-	```
+```bash
+git clone <repository_url> inception
+cd inception
+```
 
 2. **Environment variables setup:**
 
@@ -130,7 +130,8 @@ make
 | **Resource Usage** | Heavy (separate OS per VM) | Lightweight (shared kernel) |
 | **Portability** | Less portable | Highly portable (need kernel match) |
 
-**For this project**: Docker is the better choice because we need lightweight, portable, and quickly deployable services. VMs would be overkill for running simple web services. We deploy everything in a VM because we need sudo rigths.
+**For this project**: Docker is the better choice because we need lightweight, portable, and quickly deployable services. VMs would be overkill for running simple web services.
+We deploy everything in a VM because we need sudo rigths.
 
 ### Secrets vs Environment Variables
 
@@ -147,7 +148,7 @@ make
 **For this project**: 
 - **Environment variables** are used via `.env` file (as per requirements)
 - The `.env` file **must** be in `.gitignore` to prevent credential leaks
-- **Docker secrets** can optionally be used for extra security 
+- **Docker secrets** are used for extra security 
 
 ### Docker Network vs Host Network
 
@@ -178,43 +179,43 @@ make
 
 **For this project**: Docker Volumes is used:
 - **Docker Volumes**: For database data (WordPress files, MariaDB data) - ensures data persistence and portability
-- **Location of volumes**: Need to be in /home/login/data, as per the subject requirements
+- **Volumes location**: Need to be in /home/login/data, as per the subject requirements
 
 ## Project Structure
 
 ```
 inception/
-├── Makefile                          # Build automation
-├── README.md                         # Project overview
-├── USER_DOC.md                       # User documentation
-├── DEV_DOC.md                        # Developer documentation   
-├── template_env		      # Template file for the .env
-├── .env	                      # Environment variables (NOT in Git)
-├── tools			      # Utility scripts and their output
+├── Makefile			    # Build automation
+├── README.md			    # Project overview
+├── USER_DOC.md			    # User documentation
+├── DEV_DOC.md                      # Developer documentation   
+├── template_env		    # Template file for the .env
+├── .env	                    # Environment variables (NOT in Git)
+├── tools			    # Utility scripts and their output
 │   ├── cert_creation.sh
 │   ├── cert_rootCA.sh
 │   ├── check_env.sh
 │   ├── create_secret.sh
 │   └── create_env.sh
 └── srcs/
-    ├── docker-compose.yml            # Service orchestration
+    ├── docker-compose.yml          # Service orchestration
     └── requirements/
         ├── mariadb/
         │   ├── Dockerfile
-        │   └── entrypoint.sh         # MariaDB entrypoint script
+        │   └── entrypoint.sh       # MariaDB entrypoint script
         ├── nginx/
         │   ├── Dockerfile
-        │   ├── nginx.conf            # NGINX config (SSL, server blocks)
-        │   └── entrypoint.sh         # Nginx entrypoint script
-        └── wordpress/
-            ├── Dockerfile
-	    └── entrypoint.sh         # Wordpress entrypoint script
+        │   ├── nginx.conf          # NGINX config (SSL, server blocks)
+	│   └── entrypoint.sh       # Nginx entrypoint script
+	└── wordpress/
+	    ├── Dockerfile
+	    └── entrypoint.sh	    # Wordpress entrypoint script
 
 ```
 
 ## Resources
 
-### Official Documentation
+### Documentation
 - [Docker Documentation](https://docs.docker.com/) - Complete Docker reference
 - [Docker Compose Documentation](https://docs.docker.com/compose/) - Multi-container applications
 - [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/) - Guidelines for production
@@ -227,7 +228,7 @@ inception/
 - [PHP-FPM Documentation](https://www.php.net/manual/en/install.fpm.php) - FastCGI Process Manager
 
 ### 42 Resources
-- [42 Inception Subject PDF](https://cdn.intra.42.fr/pdf/pdf/xxxxx/en.subject.pdf) - Official project requirements
+- [42 Inception Subject PDF](https://cdn.intra.42.fr/pdf/pdf/xxxxx/en.subject.pdf) - Project requirements
 
 ## AI Usage
 
