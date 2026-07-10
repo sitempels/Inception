@@ -87,7 +87,7 @@ The user need:
 
 	In inception repository:
 
-	```bash
+```bash
 cat << 'EOF' > .env
 # Is a comment and will be ignored
 # Secrets SHOULD be prefixed with S_
@@ -109,7 +109,7 @@ S_WP_USER=
 S_WP_USER_PASSWORD=
 S_WP_USER_EMAIL=
 EOF
-    ```
+```
 	then 
 	```bash
 	make
