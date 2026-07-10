@@ -8,6 +8,9 @@ CERT_DIR=$(TOOLS_DIR)/certs
 SECRET_DIR:="$(TOOLS_DIR)/secrets"
 ENV_FILE:="$(LOCATION)/.env"
 
+include .env.mk
+.env.mk: env
+
 all: host certs secrets up
 
 host: env

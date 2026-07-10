@@ -30,7 +30,7 @@ while IFS='=' read -r key value; do
     [[ -z "${value// }" ]] && continue
 
     #Create env variable
-    echo "export $key=$(printf '%q' "$value")"
+    printf '%s := %s\n' "$key" "$value"
 
 done < "$ENV_FILE"
 echo "[$SCRIPT_NAME] env variables created"
