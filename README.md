@@ -48,7 +48,7 @@ All these services run in dedicated containers and follow Docker best pratices.
 
 ### Prerequisites
 
-####**Virtual Machine**(VM) running a Linux distribution
+**Virtual Machine**(VM) running a Linux distribution
 
 The VM need the following programs installed:
 - Docker Compose
@@ -60,7 +60,7 @@ The VM need the following programs installed:
 
 Any ports you use in the VM need to be open in your hyperviser
 
-####**Virtual Machine User**
+**Virtual Machine User**
 
 The user need:
 - Account and password
@@ -69,51 +69,51 @@ The user need:
 ### Installation
 
 1. **Clone the repository:**
-```bash
-git clone <repository_url> inception
-cd inception
-```
+	```bash
+	git clone <repository_url> inception
+	cd inception
+	```
 
 2. **Environment variables setup:**
 
 - **template_env exist:**
 
-```bash
-make
-```
-Enter vim and set every variables in the .env
+	```bash
+	make
+	```
+	Enter vim and set every variables in the .env
 
 - **template_env do not exist:**
 
-```bash
-In inception repository:
+	```bash
+	In inception repository:
 
-cat << EOF > .env
-# Is a comment and will be ignored
-# Secrets SHOULD be prefixed with S_
+	cat << 'EOF' > .env
+	# Is a comment and will be ignored
+	# Secrets SHOULD be prefixed with S_
 
-# VM Config
-NEW_HOSTNAME=
+	# VM Config
+	NEW_HOSTNAME=
 
-# MYSQL SECRETS
-S_MARIADB_DATABASE=
-S_MYSQL_ROOT_PASSWORD=
-S_MYSQL_USER=
-S_MYSQL_USER_PASSWORD=
-
-# WORDPRESS SECRETS
-S_WP_ADMIN_USER=
-S_WP_ADMIN_PASSWORD=
-S_WP_ADMIN_EMAIL=
-S_WP_USER=
-S_WP_USER_PASSWORD=
-S_WP_USER_EMAIL=
-EOF
-```
-then 
-```bash
-make
-```
+	# MYSQL SECRETS
+	S_MARIADB_DATABASE=
+	S_MYSQL_ROOT_PASSWORD=
+	S_MYSQL_USER=
+	S_MYSQL_USER_PASSWORD=
+	
+	# WORDPRESS SECRETS
+	S_WP_ADMIN_USER=
+	S_WP_ADMIN_PASSWORD=
+	S_WP_ADMIN_EMAIL=
+	S_WP_USER=
+	S_WP_USER_PASSWORD=
+	S_WP_USER_EMAIL=
+	EOF
+	```
+	then 
+	```bash
+	make
+	```
 
 ## Technical Comparisons
 
