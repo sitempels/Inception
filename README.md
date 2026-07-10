@@ -85,9 +85,8 @@ The user need:
 
 - **template_env do not exist:**
 
-	```bash
 	In inception repository:
-
+	```bash
 	cat << 'EOF' > .env
 	# Is a comment and will be ignored
 	# Secrets SHOULD be prefixed with S_
@@ -108,7 +107,7 @@ The user need:
 	S_WP_USER=
 	S_WP_USER_PASSWORD=
 	S_WP_USER_EMAIL=
-	EOF
+EOF
 	```
 	then 
 	```bash
