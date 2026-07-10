@@ -81,7 +81,8 @@ The user need:
 ```bash
 make
 ```
-	Enter vim and set every variables in the .env
+
+    Enter vim and set every variables in the .env
 
 - **template_env do not exist:**
 
@@ -110,7 +111,8 @@ S_WP_USER_PASSWORD=
 S_WP_USER_EMAIL=
 EOF
 ```
-	then 	
+
+    then 	
 
 ```bash
 make
