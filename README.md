@@ -1,4 +1,3 @@
-
 *This project has been created as part of the 42 curriculum by stempels*
 
 # Inception
@@ -27,7 +26,7 @@ It aims to broaden our knowledge of system administration by using Docker and a 
 
 ## Description
 
-Running in an ***Debian Virtual Machine***, we will create and manage several Docker container.
+Running in a ***Debian Virtual Machine***, we will create and manage several Docker containers.
 
 ## Infrastructure
 
@@ -41,7 +40,7 @@ The infrastructure consists of:
 - **Docker network** connecting all containers
 - **Domain name** configuration (login.42.fr pointing to local IP)
 
-All these services run in dedicated containers and follow Docker best pratices.
+All these services run in dedicated containers and follow Docker best practices.
 /add link to dev doc
 
 ## Instructions
@@ -50,7 +49,7 @@ All these services run in dedicated containers and follow Docker best pratices.
 
 **Virtual Machine**(VM) running a Linux distribution
 
-The VM need the following programs installed:
+The VM needs the following programs installed:
 - Docker Compose
 - Make
 - Sudo
@@ -58,13 +57,13 @@ The VM need the following programs installed:
 - Bash
 - Openssl
 
-Any ports you use in the VM need to be open in your hyperviser
+Any ports used in the VM to communicate with th world need to be open in your hypervisor.
 
 **Virtual Machine User**
 
 The user need:
 - Account and password
-- Root/sudo access rigths
+- root/sudo access rights
 
 ### Installation
 
@@ -76,13 +75,13 @@ The user need:
 
 2. **Environment variables setup:**
 
-- **template_env exist:**
+- **template_env exists:**
 
 ```bash
 make
 ```
 
-    Enter vim and set every variables in the .env
+Vim will open. Set all variables in .env
 
 - **template_env do not exist:**
 
@@ -112,7 +111,7 @@ S_WP_USER_EMAIL=
 EOF
 ```
 
-    then 	
+then 	
 
 ```bash
 make
@@ -191,7 +190,7 @@ inception/
 ├── DEV_DOC.md                        # Developer documentation   
 ├── template_env		      # Template file for the .env
 ├── .env	                      # Environment variables (NOT in Git)
-├── tools			      # Utility scripts and theyr output
+├── tools			      # Utility scripts and their output
 │   ├── cert_creation.sh
 │   ├── cert_rootCA.sh
 │   ├── check_env.sh
@@ -213,7 +212,7 @@ inception/
 
 ```
 
-##Ressources
+## Resources
 
 ### Official Documentation
 - [Docker Documentation](https://docs.docker.com/) - Complete Docker reference
@@ -230,13 +229,20 @@ inception/
 ### 42 Resources
 - [42 Inception Subject PDF](https://cdn.intra.42.fr/pdf/pdf/xxxxx/en.subject.pdf) - Official project requirements
 
-### AI Usage:
-- AI (chatgpt) was used for typo checking and script debugging
+## AI Usage
+
+AI tools (ChatGPT) were used to assist with:
+- proofreading documentation.
+- identifying typos.
+- debugging shell scripts.
+- Writing documentation.
+
+All code and documentation were reviewed and validated before inclusion.
 
 ## Authors
 
-**Project created by:** Simon Tempels
-**42 Login:** stempels
+**Author:** Simon Tempels
+**42 Login:** `stempels`
 
 
 ## License
