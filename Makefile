@@ -60,7 +60,7 @@ env:
 	fi
 
 secrets:
-	@mkdir -p $(SECRETS_DIR)
+	@mkdir -p $(SECRET_DIR)
 	@if [ ! -f "$(TOOLS_DIR)"/create_secrets.sh ] || [ ! -f "$(TOOLS_DIR)"/check_env.sh ]; then \
 	    echo "Missing secrets handlers"; \
 	    exit 1; \
