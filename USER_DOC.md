@@ -28,7 +28,7 @@ The stack provides:
 
 The services are isolated in separate containers and communicate through a private Docker network.
 
----
+
 
 # 2. Services Provided
 
@@ -49,7 +49,6 @@ The service is accessible through:
 https://login.42.fr
 
 
----
 
 ## WordPress
 
@@ -66,7 +65,6 @@ The WordPress administration panel is available at:
 https://login.42.fr/wp-admin
 
 
----
 
 ## MariaDB
 
@@ -81,19 +79,21 @@ It contains:
 
 MariaDB is not directly accessible from outside the Docker network.
 
----
+
 
 # 3. Starting the Project
 
 ## First installation
 
-Before starting the project, the administrator must configure the environment file.
-
-If a `template_env` file is available:
+To start the project:
 
 ```bash
 make
 ```
+
+Before starting the project, the administrator must configure the environment file.
+
+If a `template_env` file is available:
 
 The installation process will:
 
@@ -105,17 +105,7 @@ Create persistent storage directories.
 Build and start the containers.
 Starting the stack
 
-To start the project:
-
-```bash
-make
-```
-
-or:
-
-```bash
-make up
-```
+If there is no `template_env` see: [Installation](README.md#installation)
 
 The first launch may take some time because:
 
@@ -123,40 +113,21 @@ Docker images are built.
 The database is initialized.
 WordPress is downloaded and configured automatically.
 
-4. Stopping the Project
 
-To stop the running containers:
 
-make stop
+# 4. Stopping the Project
 
-This stops services but keeps containers and data.
+To stop the project, you have several options at your disposal:
 
-To completely stop and remove containers:
+| Command | | Containers | Images | Data/Volumes |
+| make stop | retain | ✅ | ✅ | ✅ |
+| make down | retain | ❌ | ✅ | ✅ |
+| make clean | retain | ❌ | ❌ | ✅ |
+| make fclean | retain | ❌ | ❌ | ❌ |
 
-make down
+*Note: ****make re**** call fclean*
 
-The persistent data is kept.
 
-To restart the complete installation:
-
-make re
-
-This rebuilds the project after cleaning containers and images.
-
-Warning:
-make fclean removes all project data.
-
-make fclean
-
-will remove:
-
-Docker containers.
-Docker images.
-Docker volumes.
-WordPress data.
-MariaDB database files.
-
-Use this only when a complete reset is required.
 
 # 5. Accessing the Website
 
@@ -172,7 +143,7 @@ The certificate is not signed by a public certificate authority. It is signed by
 
 To remove the warning, the local root CA certificate must be trusted by the operating system.
 
----
+
 
 # 6. Trusting the Certificate Authority
 
@@ -183,8 +154,6 @@ Public websites usually use certificates signed by trusted certificate authoriti
 This project creates its own certificate authority locally because it is designed to run inside a private environment.
 
 The browser does not automatically trust this certificate authority, so it displays a warning.
-
----
 
 ## Trusting the generated root CA
 
@@ -210,7 +179,7 @@ After this operation, the browser should trust:
 
     https://login.42.fr
 
----
+
 
 # 7. Accessing the WordPress Administration Panel
 
@@ -235,7 +204,7 @@ Example:
 
 Replace these placeholders with the values configured during installation.
 
----
+
 
 # 8. Credential Management
 
@@ -244,8 +213,6 @@ The project uses several types of credentials.
 Credentials are never stored directly inside Docker Compose environment variables.
 
 Instead, sensitive information is stored using Docker secrets.
-
----
 
 ## Environment configuration
 
@@ -258,8 +225,6 @@ The `.env` file must not be committed to Git.
 Example location:
 
     .env
-
----
 
 ## Docker secrets
 
@@ -281,8 +246,6 @@ Inside containers, secrets are available through:
 
     /run/secrets/
 
----
-
 ## WordPress credentials
 
 The project creates:
@@ -297,8 +260,6 @@ Defined by:
     WP_ADMIN_PASSWORD
     WP_ADMIN_EMAIL
 
----
-
 ### Regular WordPress user
 
 Created automatically during installation.
@@ -308,8 +269,6 @@ Defined by:
     WP_USER
     WP_USER_PASSWORD
     WP_USER_EMAIL
-
----
 
 ## Changing credentials
 
@@ -326,7 +285,7 @@ For database credentials or Docker secrets:
 
 Changing database credentials on an already initialized installation requires updating the WordPress database configuration as well.
 
----
+
 
 # 9. Checking Service Status
 
@@ -344,7 +303,7 @@ with the status:
 
     Up
 
----
+
 
 # 10. Checking Logs
 
@@ -362,7 +321,7 @@ Logs are useful when a service does not start correctly.
 
     docker logs mariadb
 
----
+
 
 # 11. Additional Docker Checks
 
@@ -409,7 +368,7 @@ Contains:
 - MariaDB database files.
 - Website database information.
 
----
+
 
 # 13. Backup Recommendations
 
@@ -428,7 +387,7 @@ Example:
 
 The backup should only be performed when the services are stopped or when database consistency is guaranteed.
 
----
+
 
 # 14. Common Problems
 
@@ -448,8 +407,6 @@ If a service is missing, check its logs:
 
     docker logs <container_name>
 
----
-
 ## Browser certificate warning
 
 Cause:
@@ -464,8 +421,6 @@ Install the generated root CA certificate:
 
 into the operating system certificate store.
 
----
-
 ## WordPress cannot connect to the database
 
 Check MariaDB status:
@@ -478,8 +433,6 @@ Check WordPress logs:
 
 The database container must be running before WordPress can start correctly.
 
----
-
 ## Website changes disappear after restart
 
 The project uses persistent storage.
@@ -490,7 +443,7 @@ If data disappears, check that the volumes are correctly mounted:
 
     docker inspect mariadb
 
----
+
 
 # 15. Useful Administration Commands
 
@@ -498,27 +451,19 @@ If data disappears, check that the volumes are correctly mounted:
 
     docker ps
 
----
-
 ## Restart a service
 
 Example:
 
     docker restart nginx
 
----
-
 ## Stop all services
 
     make stop
 
----
-
 ## Start all services
 
     make start
-
----
 
 ## Rebuild the project
 
@@ -528,7 +473,7 @@ This recreates the containers and images.
 
 Persistent data is preserved.
 
----
+
 
 # 16. Complete Reset
 
@@ -548,12 +493,12 @@ After this operation, the installation must be performed again.
 
 Use this command only when a complete reset is intended.
 
----
+
 
 # 17. Summary
 
 The Inception stack provides:
-:w
+
 | Service | Purpose |
 |---------|---------|
 | NGINX | HTTPS web entry point |
