@@ -7,4 +7,5 @@ RUN mkdir -p /run/nginx
 COPY entrypoint.sh /home/
 RUN chmod +x /home/entrypoint.sh
 WORKDIR /home
+EXPOSE 80 443
 CMD ["sh", "entrypoint.sh"]

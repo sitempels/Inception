@@ -22,4 +22,5 @@ RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.ph
     mv wp-cli.phar /usr/local/bin/wp
 COPY entrypoint.sh /home
 RUN chmod +x /home/entrypoint.sh
+EXPOSE 9000
 ENTRYPOINT ["/home/entrypoint.sh"]
