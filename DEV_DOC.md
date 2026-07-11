@@ -93,15 +93,15 @@ inception/
     └── requirements/
 	├── mariadb/
 	│   ├── Dockerfile
-	│   └── entrypoint.sh		# MariaDB entrypoint script
+	│   └── entrypoint.sh       # MariaDB entrypoint script
 	├── nginx/
 	│   ├── Dockerfile
-	│   ├── nginx.conf		# NGINX config (SSL, server blocks)
-	│   └── entrypoint.sh		# Nginx entrypoint script
+	│   ├── nginx.conf          # NGINX config (SSL, server blocks)
+	│   └── entrypoint.sh       # Nginx entrypoint script
 	└── wordpress/
 	    ├── Dockerfile
-	    └── entrypoint.sh		# Wordpress entrypoint script
-```
+	    └── entrypoint.sh       # Wordpress entrypoint script
+
 
 # 3. Configuration Files
 
