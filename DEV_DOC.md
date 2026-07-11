@@ -74,42 +74,32 @@ A VM is required because the project requires:
 
 Main project layout:
 
-    inception/
-    |
-    |-- Makefile
-    |-- README.md
-    |-- USER_DOC.md
-    |-- DEV_DOC.md
-    |-- template_env
-    |-- .env
-    |
-    |-- tools/
-    |   |-- cert_creation.sh
-    |   |-- cert_rootCA.sh
-    |   |-- check_env.sh
-    |   |-- create_secrets.sh
-    |   |-- create_env.sh
-    |   |
-    |   |-- certs/
-    |   |-- secrets/
-    |
-    |-- srcs/
-        |
-        |-- docker-compose.yml
-        |
-        |-- nginx/
-	|   |-- Dockerfile
-	|   |-- nginx.conf
-	|   |-- entrypoint.sh
-	|
-	|-- wordpress/
-	|   |-- Dockerfile
-	|   |-- entrypoint.sh
-	|
-	|-- mariadb/
-	    |-- Dockerfile
-	    |-- entrypoint.sh
-
+	inception/
+	├── Makefile                        # Build automation
+	├── README.md                       # Project overview
+	├── USER_DOC.md                     # User documentation
+	├── DEV_DOC.md                      # Developer documentation   
+	├── template_env                    # Template file for the .env
+	├── .env                            # Environment variables (NOT in Git)
+	├── tools                           # Utility scripts and their output
+	│   ├── cert_creation.sh
+	│   ├── cert_rootCA.sh
+	│   ├── check_env.sh
+	│   ├── create_secret.sh
+	│   └── create_env.sh
+	└── srcs/
+	    ├── docker-compose.yml          # Service orchestration
+	    └── requirements/
+		├── mariadb/
+		│   ├── Dockerfile
+		│   └── entrypoint.sh       # MariaDB entrypoint script
+		├── nginx/
+		│   ├── Dockerfile
+		│   ├── nginx.conf          # NGINX config (SSL, server blocks)
+		│   └── entrypoint.sh       # Nginx entrypoint script
+		└── wordpress/
+		    ├── Dockerfile
+		    └── entrypoint.sh       # Wordpress entrypoint script
 
 
 # 3. Configuration Files

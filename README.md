@@ -188,32 +188,32 @@ We deploy everything in a VM because we need sudo rigths.
 ## Project Structure
 
 ```
-inception/
-├── Makefile                        # Build automation
-├── README.md                       # Project overview
-├── USER_DOC.md                     # User documentation
-├── DEV_DOC.md                      # Developer documentation   
-├── template_env                    # Template file for the .env
-├── .env                            # Environment variables (NOT in Git)
-├── tools                           # Utility scripts and their output
-│   ├── cert_creation.sh
-│   ├── cert_rootCA.sh
-│   ├── check_env.sh
-│   ├── create_secret.sh
-│   └── create_env.sh
-└── srcs/
-    ├── docker-compose.yml          # Service orchestration
-    └── requirements/
-        ├── mariadb/
-        │   ├── Dockerfile
-        │   └── entrypoint.sh       # MariaDB entrypoint script
-        ├── nginx/
-        │   ├── Dockerfile
-        │   ├── nginx.conf          # NGINX config (SSL, server blocks)
-        │   └── entrypoint.sh       # Nginx entrypoint script
-        └── wordpress/
-            ├── Dockerfile
-            └── entrypoint.sh       # Wordpress entrypoint script
+	inception/
+	├── Makefile                        # Build automation
+	├── README.md                       # Project overview
+	├── USER_DOC.md                     # User documentation
+	├── DEV_DOC.md                      # Developer documentation   
+	├── template_env                    # Template file for the .env
+	├── .env                            # Environment variables (NOT in Git)
+	├── tools                           # Utility scripts and their output
+	│   ├── cert_creation.sh
+	│   ├── cert_rootCA.sh
+	│   ├── check_env.sh
+	│   ├── create_secret.sh
+	│   └── create_env.sh
+	└── srcs/
+	    ├── docker-compose.yml          # Service orchestration
+	    └── requirements/
+		├── mariadb/
+		│   ├── Dockerfile
+		│   └── entrypoint.sh       # MariaDB entrypoint script
+		├── nginx/
+		│   ├── Dockerfile
+		│   ├── nginx.conf          # NGINX config (SSL, server blocks)
+		│   └── entrypoint.sh       # Nginx entrypoint script
+		└── wordpress/
+		    ├── Dockerfile
+		    └── entrypoint.sh       # Wordpress entrypoint script
 
 ```
 
