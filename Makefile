@@ -99,4 +99,6 @@ fclean: clean
 
 re: clean up
 
-.PHONY: all host certs env secrets build up down start stop clean fclean re 
+fre: fclean up
+
+.PHONY: all host certs env secrets build up down start stop clean fclean re fre
