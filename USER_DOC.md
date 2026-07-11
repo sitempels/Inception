@@ -120,6 +120,7 @@ WordPress is downloaded and configured automatically.
 To stop the project, you have several options at your disposal:
 
 | Command | | Containers | Images | Data/Volumes |
+|---------|-|------------|--------|--------------|
 | make stop | retain | ✅ | ✅ | ✅ |
 | make down | retain | ❌ | ✅ | ✅ |
 | make clean | retain | ❌ | ❌ | ✅ |
