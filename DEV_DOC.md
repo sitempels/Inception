@@ -79,10 +79,10 @@ inception/
 ├── Makefile                        # Build automation
 ├── README.md                       # Project overview
 ├── USER_DOC.md                     # User documentation
-├── DEV_DOC.md                      # Developer documentation   
-├── template_env                    # Template file for the .env
-├── .env                            # Environment variables (NOT in Git)
-├── tools                           # Utility scripts and their output
+├── DEV_DOC.md                      # Developer documentation
+├── template_env                    # Template for the .env file
+├── .env                            # Environment variables (not committed)
+├── tools/                          # Utility scripts
 │   ├── cert_creation.sh
 │   ├── cert_rootCA.sh
 │   ├── check_env.sh
@@ -91,16 +91,16 @@ inception/
 └── srcs/
     ├── docker-compose.yml          # Service orchestration
     └── requirements/
-	├── mariadb/
-	│   ├── Dockerfile
-	│   └── entrypoint.sh       # MariaDB entrypoint script
-	├── nginx/
-	│   ├── Dockerfile
-	│   ├── nginx.conf          # NGINX config (SSL, server blocks)
-	│   └── entrypoint.sh       # Nginx entrypoint script
-	└── wordpress/
-	    ├── Dockerfile
-	    └── entrypoint.sh       # Wordpress entrypoint script
+        ├── mariadb/
+        │   ├── Dockerfile
+        │   └── entrypoint.sh       # MariaDB entrypoint script
+        ├── nginx/
+        │   ├── Dockerfile
+        │   ├── nginx.conf          # NGINX configuration
+        │   └── entrypoint.sh       # NGINX entrypoint script
+        └── wordpress/
+            ├── Dockerfile
+            └── entrypoint.sh       # WordPress entrypoint script
 ```
 
 
