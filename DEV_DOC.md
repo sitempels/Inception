@@ -1,1104 +1,1266 @@
 # Developer Documentation
 
-> Technical reference for developers working on the **Inception** project.
+## Inception Project
+
+This document explains how to set up, build, launch, and maintain the Inception project as a developer.
+
+It describes:
+
+- Required development environment.
+- Configuration files.
+- Secret generation.
+- Build and launch workflow.
+- Docker and Makefile commands.
+- Container and volume management.
+- Persistent data locations.
+
+The project runs inside a Debian Virtual Machine and uses Docker containers.
 
 ---
 
-## Table of Contents
+# 1. Development Environment
 
-- [Overview](#overview)
-- [Prerequisites and Environment Setup](#prerequisites-and-environment-setup)
-  - [System Requirements](#system-requirements)
-  - [Install Docker](#1-install-docker)
-  - [Add Docker's GPG Key](#2-add-dockers-official-gpg-key)
-  - [Add Docker's Repository](#3-add-dockers-official-repository)
-  - [Install Docker Engine](#4-install-docker-engine--all-plugins)
-  - [Verify the Installation](#5-verify-the-installation)
-  - [Add User to Docker Group](#6-add-your-user-to-the-docker-group)
-  - [Clone and Set Up Repository](#7-clone-and-set-up-repository)
-  - [Set Up Environment Variables](#8-set-up-environment-variables)
-  - [Start the Infrastructure](#9-start-the-infrastructure)
-- [Configuration Files](#configuration-files)
-  - [Docker Compose Configuration](#docker-compose-configuration)
-  - [Makefile Structure and Automation](#makefile-structure-and-automation)
-- [Building the Project](#building-the-project)
-- [Docker Compose Management](#docker-compose-management)
-- [Container Management](#container-management)
-- [Volume Management](#volume-management)
-- [Network Configuration](#network-configuration)
-- [Service Details](#service-details)
-  - [NGINX](#nginx-service)
-  - [WordPress](#wordpress-service)
-  - [MariaDB](#mariadb-service)
-- [Debugging](#debugging)
-- [Security Considerations](#security-considerations)
-- [Data Storage and Persistence](#data-storage-and-persistence)
-- [Useful Commands Reference](#useful-commands-reference)
+## Requirements
+
+The development environment requires:
+
+- Linux Virtual Machine.
+- Docker.
+- Docker Compose.
+- Make.
+- Git.
+- Bash.
+- OpenSSL.
+- Sudo privileges.
+
+The VM is required because the project needs:
+
+- Docker administration rights.
+- Hostname configuration.
+- Local certificate generation.
+- Host filesystem access.
 
 ---
 
-## Overview
+# 2. Repository Structure
 
-Inception is a multi-container Docker application that demonstrates infrastructure as code principles. The project consists of three services — **NGINX**, **WordPress**, and **MariaDB** — orchestrated via Docker Compose, with emphasis on security, modularity, and best practices.
+Main project layout:
 
-### Technical Stack
-
-| Component | Technology |
-|---|---|
-| Containerization | Docker |
-| Orchestration | Docker Compose |
-| Base Images | Debian (penultimate stable) |
-| Web Server | NGINX with TLSv1.2/1.3 |
-| Application | WordPress + PHP-FPM |
-| Database | MariaDB |
-| Automation | Makefile |
-
-### Architecture Principles
-
-1. **Service Isolation** — Each service runs in its own container
-2. **No Hacky Patches** — Proper daemon processes, no infinite loops
-3. **Custom Images** — All Dockerfiles built from scratch
-4. **Named Volumes** — Persistent storage managed by Docker
-5. **Bridge Network** — Isolated container communication
-6. **Environment Variables** — Configuration via `.env` file
-7. **Security First** — No hardcoded credentials, TLS only
-
----
-
-## Prerequisites and Environment Setup
-
-### System Requirements
-
-**Virtual Machine:**
-- Linux distribution (Ubuntu)
-- Minimum 2 GB RAM
-- 10 GB free disk space
-- Root / sudo access
-
-**Verify installed tools:**
-
-```bash
-# Check Docker version
-docker --version
-# Check Docker Compose version
-docker-compose --version
-# Check Make
-make --version
-```
+    inception/
+    |
+    |-- Makefile
+    |-- README.md
+    |-- USER_DOC.md
+    |-- DEV_DOC.md
+    |-- template_env
+    |-- .env
+    |
+    |-- tools/
+    |   |-- cert_creation.sh
+    |   |-- cert_rootCA.sh
+    |   |-- check_env.sh
+    |   |-- create_secrets.sh
+    |   |-- create_env.sh
+    |   |
+    |   |-- certs/
+    |   |-- secrets/
+    |
+    |-- srcs/
+        |
+        |-- docker-compose.yml
+        |
+        |-- requirements/
+            |
+            |-- nginx/
+            |   |-- Dockerfile
+            |   |-- nginx.conf
+            |   |-- entrypoint.sh
+            |
+            |-- wordpress/
+            |   |-- Dockerfile
+            |   |-- entrypoint.sh
+            |
+            |-- mariadb/
+                |-- Dockerfile
+                |-- entrypoint.sh
 
 ---
 
-### 1. Install Docker
+# 3. Configuration Files
 
-#### Required Dependencies
+## Environment File
 
-| Package | Role |
-|---|---|
-| `ca-certificates` | Verifies SSL certificates and secures HTTPS connections |
-| `curl` | Fetches files and communicates with APIs over HTTP/HTTPS |
-| `gnupg` | Verifies that downloaded packages genuinely come from Docker |
-| `lsb-release` | Provides distribution info to configure the correct repository |
+The project uses a `.env` file for configuration.
 
-```bash
-# Update package index
-sudo apt-get update
+The file is created from:
 
-# Install dependencies
-sudo apt-get install -y ca-certificates curl gnupg lsb-release
-```
+    template_env
 
----
+The `.env` file is not committed to Git.
 
-### 2. Add Docker's Official GPG Key
+It contains:
 
-Every Docker package is signed with a private key. Your system needs the corresponding public key to verify this signature. We download it and install it into `/etc/apt/keyrings/`.
+- Hostname configuration.
+- Secret generation values.
+- Project-specific variables.
 
-> **Result:** When you run `apt install docker-ce`, Debian will verify the package is genuine and untampered.
+Example:
 
-```bash
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-```
+    NEW_HOSTNAME=login.42.fr
 
-**Command breakdown:**
+Database values:
 
-| Part | Role |
-|---|---|
-| `mkdir -p /etc/apt/keyrings` | Creates the GPG key storage folder if needed |
-| `curl -fsSL ...` | Downloads Docker's official GPG key |
-| `gpg --dearmor` | Converts the key into a format readable by apt |
-| `-o /etc/apt/keyrings/docker.gpg` | Saves the converted key |
+    S_MARIADB_DATABASE=
+    S_MYSQL_ROOT_PASSWORD=
+    S_MYSQL_USER=
+    S_MYSQL_USER_PASSWORD=
 
----
+WordPress values:
 
-### 3. Add Docker's Official Repository
+    S_WP_ADMIN_USER=
+    S_WP_ADMIN_PASSWORD=
+    S_WP_ADMIN_EMAIL=
 
-By default, Debian does not include the most recent Docker packages. Adding Docker's official repository tells `apt` where to look for `docker-ce`.
+    S_WP_USER=
+    S_WP_USER_PASSWORD=
+    S_WP_USER_EMAIL=
 
-```bash
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-  https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
-  | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-```
-
-**Command breakdown:**
-
-| Part | Role |
-|---|---|
-| `echo "deb ... stable"` | Creates the repository entry line |
-| `arch=$(dpkg --print-architecture)` | Auto-detects your machine's architecture (amd64, arm64, etc.) |
-| `signed-by=/etc/apt/keyrings/docker.gpg` | Tells apt to use the GPG key from step 2 |
-| `$(lsb_release -cs)` | Retrieves your Debian codename (e.g. `bookworm`) |
-| `sudo tee /etc/apt/sources.list.d/docker.list` | Writes the entry into a dedicated Docker repo file |
-| `> /dev/null` | Suppresses output to keep the terminal clean |
-
-> **Result:** Your Debian system now knows about the official Docker repository.
+Sensitive values must never be committed.
 
 ---
 
-### 4. Install Docker Engine + All Plugins
+# 4. Secret Management
 
-```bash
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
+The project uses Docker secrets to handle sensitive information.
 
-**Package breakdown:**
+Secrets are generated from values stored in `.env`.
 
-| Package | Role |
-|---|---|
-| `docker-ce` | Main Docker engine — manages containers |
-| `docker-ce-cli` | Command-line interface (`docker run`, `docker ps`, …) |
-| `containerd.io` | Container runtime — executes containers |
-| `docker-buildx-plugin` | Extension for building advanced Docker images |
-| `docker-compose-plugin` | Native Docker Compose v2 support (`docker compose`) |
+The generation process is handled by:
 
----
+    tools/create_secrets.sh
 
-### 5. Verify the Installation
+Generated secrets are stored in:
 
-```bash
-docker --version
-docker compose version
-```
+    tools/secrets/
 
-> **Result:** Displays the version of each tool.
+During container startup, Docker mounts secrets into:
 
-```bash
-docker run hello-world
-```
+    /run/secrets/
 
-> **Result:** Launches an ephemeral container, prints a confirmation message, then shuts down.
+Containers read credentials from these files.
 
----
+Examples:
 
-### 6. Add Your User to the Docker Group
+MariaDB reads:
 
-```bash
-sudo usermod -aG docker $USER
-```
+    /run/secrets/mysql_root_password
 
-> Log out and back in for this change to take effect.
+WordPress reads:
+
+    /run/secrets/wp_admin_password
+
+NGINX reads:
+
+    /run/secrets/nginx_key
 
 ---
 
-### 7. Clone and Set Up Repository
+# 5. Certificate Generation
 
-```bash
-# Clone the repository
-git clone <repository-url>
-cd inception
+The project generates its own Certificate Authority and HTTPS certificate.
 
-# Verify structure
-ls -la
-# Expected: Makefile, srcs/, README.md, etc.
-```
+The process is handled by:
 
----
+    tools/cert_rootCA.sh
 
-### 8. Set Up Environment Variables
+and:
 
-```bash
-# Create .env file
-touch srcs/.env
+    tools/cert_creation.sh
 
-# Edit with your values
-vim srcs/.env
-```
+Generated files:
 
-Your `.env` file should contain:
+    tools/certs/
 
-```bash
-DOMAIN_NAME=login.42.fr
-SQL_DATABASE=example_db
-SQL_USER=example_user
-SQL_PASSWORD=example_password
-SQL_ROOT_PASSWORD=example_root_password
-WP_ADMIN_USER=example_superuser
-WP_ADMIN_PASSWORD=example_superuser_password
-WP_ADMIN_EMAIL=superuser@example.org
-WP_USER=example_username
-WP_USER_PASSWORD=example_user_password
-WP_USER_EMAIL=user@example.xyz
-SQL_DATA_PATH=/home/login/data/mariadb
-WP_DATA_PATH=/home/login/data/wordpress
-```
+Contains:
 
-> **Important:** Never commit this file to Git.  
-> The Makefile will automatically update `/home/*/data/` paths to match your current username.
+- Root CA certificate.
+- NGINX certificate.
+- NGINX private key.
+
+These files are mounted into the NGINX container using Docker secrets.
 
 ---
 
-### 9. Start the Infrastructure
+# 6. Makefile Workflow
 
-```bash
-# Single command handles everything
-make
-```
+The Makefile automates the complete deployment process.
 
-This single command handles the entire setup automatically:
+The default target is:
 
-1. ✅ Verifies and updates your `.env` file (`make check-env`)
-2. ✅ Adds your domain to `/etc/hosts` (`make hosts`)
-3. ✅ Creates required volume directories (`make init`)
-4. ✅ Builds all Docker images
-5. ✅ Starts all containers
+    make
 
-> You no longer need to manually create data directories, add the domain to `/etc/hosts`, or update paths in `.env`.
+Equivalent workflow:
 
----
-
-## Configuration Files
-
-> **Important:** Never commit `.env` to Git.
-
-### Docker Compose Configuration
-
-The `docker-compose.yml` file defines the full infrastructure:
-
-```yaml
-services:
-  # 🔹 MariaDB service
-  mariadb:
-    image: mariadb
-    build:                      # 🔨 Specifies how to build the image
-      context: ./requirements/mariadb  # 📁 Path to the folder containing the Dockerfile
-      dockerfile: Dockerfile          # 📄 Dockerfile name
-    container_name: mariadb     # 🧱 Custom container name
-    env_file: .env              # 📦 Environment variables to load
-    volumes:                    # 💾 Persistent volume for MariaDB data
-      - mariadb_data:/var/lib/mysql
-    networks:                   # 🌐 Docker network (allows services to communicate)
-      - inception
-    restart: unless-stopped     # 🔁 Restart unless manually stopped
-
-  # 🔹 WordPress service (with PHP-FPM)
-  wordpress:
-    image: wordpress
-    build:
-      context: ./requirements/wordpress
-      dockerfile: Dockerfile
-    container_name: wordpress
-    env_file: .env
-    volumes:
-      - wordpress_data:/var/www/html  # 📁 Shared folder containing WordPress files
-    networks:
-      - inception
-    depends_on:
-      - mariadb               # ⏳ Start WordPress only if MariaDB is ready
-    restart: unless-stopped
-
-  # 🔹 NGINX service
-  nginx:
-    image: nginx
-    build:
-      context: ./requirements/nginx
-      dockerfile: Dockerfile
-    container_name: nginx
-    env_file: .env
-    ports:
-      - "443:443"             # 🌍 HTTPS port exposed locally
-    volumes:
-      - wordpress_data:/var/www/html  # 📁 Share WordPress files with NGINX
-    networks:
-      - inception
-    depends_on:
-      - wordpress             # ⏳ NGINX waits until WordPress is ready
-    restart: unless-stopped
-
-  # 🔸 Persistent volumes definition
-volumes:
-  mariadb_data:
-    driver: local
-  wordpress_data:
-    driver: local
-
-# 🔸 Custom network allowing containers to communicate
-networks:
-  inception:
-    driver: bridge            # 🧭 Bridge network: all containers share an isolated network
-
-
-```
+1. Configure hostname.
+2. Generate environment.
+3. Generate certificates.
+4. Generate secrets.
+5. Build containers.
+6. Start services.
 
 ---
 
-### Makefile Structure and Automation
+# 7. Main Makefile Commands
 
-The project includes an intelligent Makefile that automates setup, configuration, and management.
+## Full installation
 
-#### Color Definitions
+    make
 
-```makefile
-GREEN   = \033[0;32m    # Success messages
-YELLOW  = \033[0;33m    # Information messages
-CYAN    = \033[0;36m    # Info messages
-RED     = \033[0;31m    # Error messages
-NC      = \033[0m       # Reset color
-```
-
-#### Variables
-
-```makefile
-NAME          = inception
-DOCKER_COMPOSE = docker compose -f srcs/docker-compose.yml
-ENV_FILE      = srcs/.env
-
-# Dynamically read paths from .env file
-SQL_DATA_PATH = $(shell grep SQL_DATA_PATH $(ENV_FILE) | cut -d '=' -f2)
-WP_DATA_PATH  = $(shell grep WP_DATA_PATH $(ENV_FILE) | cut -d '=' -f2)
-DOMAIN_NAME   = $(shell grep DOMAIN_NAME $(ENV_FILE) | cut -d '=' -f2)
-```
-
-> `$(shell ...)` executes at Makefile parse time, making it dynamic and adaptable across environments.
+Runs the complete setup process.
 
 ---
 
-#### Main Commands
+## Build images
 
-**`make` / `make all` (default target):**
+    make build
 
-```makefile
-all: check-env hosts logo up
-```
+Equivalent Docker command:
 
-Runs the full setup pipeline: environment check → host config → build → start.
+    docker compose -f srcs/docker-compose.yml build
 
----
+Builds:
 
-**`make check-env`:**
-
-```makefile
-check-env:
-	@if [ ! -f $(ENV_FILE) ]; then \
-		echo "$(RED)[ERROR] .env file not found. Please create it based on .env.example$(NC)"; \
-		exit 1; \
-	fi
-	@sed -i "s|/home/[^/]\+/data/|/home/$(USER)/data/|g" $(ENV_FILE)
-	@echo "$(GREEN)[OK] .env file verified and updated.$(NC)"
-```
-
-Checks if `.env` exists and updates the `/home/*/data/` path to match the current `$USER`.
+- nginx image.
+- wordpress image.
+- mariadb image.
 
 ---
 
-**`make hosts`:**
+## Start services
 
-```makefile
-hosts:
-	@if ! grep -q "$(DOMAIN_NAME)" /etc/hosts; then \
-		echo "127.0.0.1 $(DOMAIN_NAME)" | sudo tee -a /etc/hosts > /dev/null; \
-		echo "$(GREEN)[OK] Domain $(DOMAIN_NAME) added to /etc/hosts.$(NC)"; \
-	else \
-		echo "$(CYAN)[INFO] Domain $(DOMAIN_NAME) already in /etc/hosts.$(NC)"; \
-	fi
-```
+    make up
 
-Idempotent: only adds the domain if it is not already present.
+Equivalent Docker command:
+
+    docker compose -f srcs/docker-compose.yml up -d
+
+Creates and starts containers in detached mode.
 
 ---
 
-**`make logo`:**
+## Stop services
 
-```makefile
-logo:
-	@echo " _____                     _   _             "
-	@echo "|_   _|                   | | (_)            "
-	@echo "  | | _ __   ___ ___ _ __ | |_ _  ___  _ __  "
-	@echo "  | || '_ \\ / __/ _ \\ '_ \\| __| |/ _ \\| '_ \\ "
-	@echo " _| || | | | (_|  __/ |_) | |_| | (_) | | | |"
-	@echo " \\___/_| |_|\\___\\___| .__/ \\__|_|\\___/|_| |_|"
-	@echo "                    | |                      "
-	@echo "                    |_|                      "
-```
+    make stop
+
+Equivalent Docker command:
+
+    docker compose -f srcs/docker-compose.yml stop
+
+Stops containers without removing them.
 
 ---
 
-**`make init`:**
+## Remove containers
 
-```makefile
-init:
-	@echo "$(YELLOW)Creating required host directories...$(NC)"
-	mkdir -p $(SQL_DATA_PATH) $(WP_DATA_PATH)
-	@echo "$(GREEN)Directories ready:$(NC) $(SQL_DATA_PATH), $(WP_DATA_PATH)"
-```
+    make down
 
-Creates volume directories on the host if they don't exist. Paths are read dynamically from `.env`.
+Equivalent Docker command:
 
----
+    docker compose -f srcs/docker-compose.yml down
 
-**`make build`:**
+Stops and removes containers.
 
-```makefile
-build: init
-	@echo "$(YELLOW)Building Docker images...$(NC)"
-	$(DOCKER_COMPOSE) build
-	@echo "$(GREEN)Build successful!$(NC)"
-```
+# 8. Docker Compose Configuration
 
-Depends on `init`. Builds all Docker images defined in `docker-compose.yml`.
+The main orchestration file is:
 
----
+    srcs/docker-compose.yml
 
-**`make up`:**
+It defines:
 
-```makefile
-up: build
-	@echo "$(YELLOW)Starting containers...$(NC)"
-	$(DOCKER_COMPOSE) up -d
-	@echo "$(GREEN)Containers are up and running!$(NC)"
-```
+- Services.
+- Networks.
+- Volumes.
+- Secrets.
+- Service dependencies.
 
-Depends on `build`. Starts all containers in detached mode.
+The project contains three services:
+
+- nginx
+- wordpress
+- mariadb
 
 ---
 
-**`make down`:**
+# 9. Service Overview
 
-```makefile
-down:
-	@echo "$(YELLOW)Stopping containers...$(NC)"
-	$(DOCKER_COMPOSE) down
-	@echo "$(GREEN)Containers stopped.$(NC)"
-```
+## NGINX Service
 
-Stops and removes containers. Preserves volumes and data.
+Location:
 
----
+    srcs/requirements/nginx/
 
-**`make clean`:**
+Responsibilities:
 
-```makefile
-clean: down
-	@echo "$(YELLOW)Removing containers...$(NC)"
-	$(DOCKER_COMPOSE) rm -f
-	@echo "$(GREEN)Containers removed.$(NC)"
-```
+- HTTPS termination.
+- HTTP to HTTPS redirection.
+- Static file serving.
+- Forwarding PHP requests to WordPress.
 
-Removes stopped containers. Still preserves volumes.
+Container:
 
----
+    nginx
 
-**`make fclean`:**
+Exposed ports:
 
-```makefile
-fclean: clean
-	@echo "$(YELLOW)Cleaning volumes, networks, and images...$(NC)"
-	$(DOCKER_COMPOSE) down -v --rmi all --remove-orphans
-	sudo rm -rf $(SQL_DATA_PATH) $(WP_DATA_PATH)
-	@echo "$(GREEN)Full clean done.$(NC)"
-```
+    80:80
+    443:443
 
-> ⚠️ **Destructive.** Removes containers, volumes, networks, images, and all host data directories. All data is permanently lost.
+The container receives:
+
+- Certificate.
+- Private key.
+- Domain name.
+
+The certificate files are provided through Docker secrets.
 
 ---
 
-**`make re`:**
+## WordPress Service
 
-```makefile
-re: fclean all
-```
+Location:
 
-Full rebuild: wipes everything then rebuilds from scratch.
+    srcs/requirements/wordpress/
 
-> ⚠️ **Destructive.** All data is lost.
+Responsibilities:
 
----
+- Run PHP-FPM.
+- Install WordPress.
+- Configure WordPress.
+- Connect to MariaDB.
 
-**`.PHONY` Declaration:**
+Container:
 
-```makefile
-.PHONY: all build up down clean fclean re logo init check-env hosts
-```
+    wordpress
 
-Declares all targets as phony so they always execute, even if files with those names exist.
+Exposed internally:
 
----
+    9000
 
-#### Usage Examples
+The container is not directly accessible from outside.
 
-**First-time setup:**
+NGINX forwards PHP requests to:
 
-```bash
-# Single command does everything
-make
-
-# Equivalent to:
-# make check-env   # Verify .env
-# make hosts       # Add domain to /etc/hosts
-# make logo        # Display ASCII art
-# make build       # Build images (calls init first)
-# make up          # Start containers
-```
-
-**Daily workflow:**
-
-```bash
-# Start work
-make
-# Stop for the day
-make down
-# Next day (data preserved)
-make
-```
-
-**Debugging:**
-```bash
-# Rebuild specific parts
-make check-env     # Only verify environment
-make build         # Only rebuild images
-make up            # Only start containers
-
-# View logs
-docker compose -f srcs/docker-compose.yml logs -f
-```
-
-**Clean slate:**
-```bash
-# Complete reset
-make fclean   # Delete everything
-make          # Rebuild from scratch
-# Or just: make re
-```
+    wordpress:9000
 
 ---
 
-## Building the Project
+## MariaDB Service
 
-### Build Process Overview
+Location:
 
-1. Reads `docker-compose.yml`
-2. Builds each Dockerfile in `requirements/`
-3. Creates Docker images with appropriate tags
-4. Sets up networks and volumes
-5. Starts containers in dependency order
+    srcs/requirements/mariadb/
 
-### Understanding Dockerfiles
+Responsibilities:
 
-Each service has its own Dockerfile following this pattern:
+- Initialize database.
+- Create database user.
+- Store WordPress data.
 
-**Example — NGINX Dockerfile:**
+Container:
 
-```dockerfile
-# Use Debian 11 (bullseye) as base image
-FROM debian:bullseye
+    mariadb
 
-# Update packages, install NGINX and OpenSSL in a single layer and clean apt cache
-RUN apt update \
-    && apt install -y nginx openssl \
-    && rm -rf /var/lib/apt/lists/*
+Internal port:
 
-# Remove default NGINX configuration files to avoid conflicts
-RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
+    3306
 
-# Create required directories
-RUN mkdir -p /var/www/html /etc/nginx/ssl
-
-# Copy custom NGINX configuration
-COPY conf/nginx.conf /etc/nginx/nginx.conf
-
-# Copy SSL setup script and make it executable
-COPY tools/setup_ssl.sh /setup.sh
-RUN chmod +x /setup.sh
-
-# Set permissions on web root directory
-RUN chmod -R 755 /var/www/html
-
-# Change ownership to www-data (used by NGINX)
-RUN chown -R www-data:www-data /var/www/html
-
-# Generate SSL certificates
-RUN /setup.sh
-
-# Expose HTTPS port
-EXPOSE 443
-
-# Run NGINX in foreground
-CMD ["nginx", "-g", "daemon off;"]
-
-```
-
-**Key principles:**
-- Base image: Debian (penultimate stable), no `:latest` tag
-- Minimal package installation
-- Configuration copied at build time
-- `CMD` runs the process in the foreground — no `tail -f` or infinite loops
+The service is accessible only through the Docker network.
 
 ---
 
-## Docker Compose Management
+# 10. Docker Network
 
-### Core Commands
+The project uses a dedicated bridge network:
 
-```bash
-# Start services in detached mode
-docker-compose -f srcs/docker-compose.yml up -d
+    inception
 
-# Start with forced rebuild
-docker-compose -f srcs/docker-compose.yml up -d --build
+All containers are connected to this network.
 
-# Stop services (keeps containers)
-docker-compose -f srcs/docker-compose.yml stop
+Communication uses Docker DNS names:
 
-# Stop and remove containers
-docker-compose -f srcs/docker-compose.yml down
+Example:
 
-# Stop, remove containers and volumes
-docker-compose -f srcs/docker-compose.yml down -v
+WordPress connects to MariaDB using:
 
-# View running services
-docker-compose -f srcs/docker-compose.yml ps
+    mariadb
 
-# View all logs
-docker-compose -f srcs/docker-compose.yml logs
+NGINX connects to WordPress using:
 
-# Follow logs in real-time
-docker-compose -f srcs/docker-compose.yml logs -f
+    wordpress
 
-# Logs for a specific service
-docker-compose -f srcs/docker-compose.yml logs -f wordpress
-
-# Restart a specific service
-docker-compose -f srcs/docker-compose.yml restart nginx
-
-# Execute a command in a container
-docker-compose -f srcs/docker-compose.yml exec wordpress sh
-```
-
-### Service Start Order
-
-Services start in this order due to `depends_on`:
-
-1. **MariaDB** — no dependencies
-2. **WordPress** — depends on MariaDB
-3. **NGINX** — depends on WordPress
-
-> **Note:** `depends_on` only waits for containers to *start*, not for services to be fully ready. Implement health checks or wait scripts for production environments.
+No container needs to know the IP address of another container.
 
 ---
 
-## Container Management
+# 11. Startup Sequence
 
-### Inspecting Containers
+The startup process follows this order:
 
-```bash
-# List all containers
-docker ps -a
-# Inspect container configuration
-docker inspect nginx
-# View container resource usage
-docker stats
-```
+## Step 1: Host configuration
 
-### Resource Management
+The Makefile checks the hostname.
 
-```bash
-# View Docker disk usage
-docker system df
-# Clean up all unused resources
-docker system prune -a
-# Remove stopped containers only
-docker container prune
-# Remove unused images
-docker image prune -a
-# Remove unused volumes
-docker volume prune
-```
+If needed:
+
+- The VM hostname is updated.
+- The hosts configuration is modified.
 
 ---
 
-## Volume Management
+## Step 2: Environment validation
 
-### Volume Commands
+The Makefile checks that:
 
-```bash
-# List all volumes
-docker volume ls
+- `.env` exists.
+- Required variables are available.
 
-# Check volume contents on host
-ls -la /home/$(whoami)/data/wordpress/
-ls -la /home/$(whoami)/data/mariadb/
+Handled by:
 
-# Check volume sizes
-du -sh /home/$(whoami)/data/*
-
-# Check database tables
-docker exec -it mariadb mysql -u dbajeux -pimagine -e "USE wordpress; SHOW TABLES;"
-
-# Inspect a specific table (loads credentials from .env)
-export $(grep -v '^#' .env | xargs) && docker exec -it mariadb mysql -u $SQL_USER -p$SQL_PASSWORD -e "SELECT * FROM <name_of_table>;" $SQL_DATABASE
-
-# Remove all volumes (WARNING: deletes all data)
-docker-compose -f srcs/docker-compose.yml down -v
-```
+    tools/check_env.sh
 
 ---
 
-## Network Configuration
+## Step 3: Certificate generation
 
-### Port Mapping
+If certificates do not exist:
 
-Only NGINX exposes ports to the host. WordPress and MariaDB are only accessible internally through the Docker network.
+1. Generate local Certificate Authority.
+2. Generate NGINX certificate.
+3. Store certificates in:
 
-```yaml
-# nginx in docker-compose.yml
-ports:
-  - "443:443"  # HOST_PORT:CONTAINER_PORT
-```
-
-> The format is always `HOST:CONTAINER`.
+       tools/certs/
 
 ---
 
-### Port Summary
+## Step 4: Secret generation
 
-| Service | Default Port | Exposed to Host | Where to Change |
-|---|---|---|---|
-| NGINX | `443` | ✅ Yes | `docker-compose.yml` + `nginx.conf` + WordPress URLs |
-| WordPress (PHP-FPM) | `9000` | ❌ No | `www.conf` + `nginx.conf` |
-| MariaDB | `3306` | ❌ No | `50-server.cnf` + `setup_wordpress.sh` |
+The Makefile creates Docker secret files.
+
+Handled by:
+
+    tools/create_secrets.sh
+
+Secrets are stored in:
+
+    tools/secrets/
 
 ---
 
-### Changing Ports
+## Step 5: Build images
 
-**NGINX — change the host-side port:**
+Docker Compose builds:
 
-```yaml
-# docker-compose.yml
-ports:
-  - "8080:443"
-```
+- Alpine-based NGINX image.
+- Alpine-based MariaDB image.
+- Alpine-based WordPress/PHP-FPM image.
 
-Then update WordPress URLs:
+Command:
 
-```bash
-docker exec -it wordpress bash
-wp option update siteurl 'https://dbajeux.42.fr:8080' --allow-root
-wp option update home 'https://dbajeux.42.fr:8080' --allow-root
-```
+    docker compose -f srcs/docker-compose.yml build
+
+---
+
+## Step 6: Start containers
+
+Docker Compose creates:
+
+- Network.
+- Volumes.
+- Containers.
+
+Command:
+
+    docker compose -f srcs/docker-compose.yml up -d
+
+---
+
+## Step 7: MariaDB initialization
+
+MariaDB entrypoint:
+
+    srcs/requirements/mariadb/entrypoint.sh
+
+performs:
+
+- Database directory initialization.
+- Database creation.
+- User creation.
+- Permission setup.
+
+After initialization, MariaDB starts listening on port:
+
+    3306
+
+---
+
+## Step 8: WordPress initialization
+
+WordPress waits for MariaDB availability.
+
+The entrypoint:
+
+    srcs/requirements/wordpress/entrypoint.sh
+
+performs:
+
+- MariaDB connection test.
+- WordPress download.
+- WordPress configuration creation.
+- WordPress installation.
+- User creation.
+
+WP-CLI is used for installation.
+
+---
+
+## Step 9: NGINX startup
+
+NGINX starts after configuration generation.
+
+The entrypoint:
+
+    srcs/requirements/nginx/entrypoint.sh
+
+uses:
+
+    envsubst
+
+to replace:
+
+    $DOMAIN_NAME
+
+inside the NGINX template.
+
+The generated configuration enables:
+
+- HTTPS.
+- TLS 1.2.
+- TLS 1.3.
+- PHP forwarding.
+
+---
+
+# 12. Dockerfile Overview
+
+Each service has its own Dockerfile.
+
+The images are based on:
+
+    alpine:3.23
+
+This keeps the images lightweight.
+
+---
+
+## NGINX Dockerfile
+
+Installs:
+
+- nginx
+- envsubst
+
+Copies:
+
+- nginx configuration template.
+- startup script.
+
+The container starts:
+
+    nginx -g "daemon off;"
+
+---
+
+## MariaDB Dockerfile
+
+Installs:
+
+- mariadb
+- mariadb-client
+
+Creates required database directories.
+
+The entrypoint initializes the database before starting MariaDB.
+
+---
+
+## WordPress Dockerfile
+
+Installs:
+
+- PHP 8.3.
+- PHP-FPM.
+- MariaDB client.
+- WordPress CLI.
+
+PHP-FPM listens internally on:
+
+    port 9000
+
+WordPress files are stored in:
+
+    /var/www/<domain>
+
+# 13. Managing Containers
+
+Developers can use Docker Compose directly or use the Makefile shortcuts.
+
+The Makefile is recommended for normal project operations.
+
+---
+
+# 13.1 Viewing Running Containers
+
+Display active containers:
+
+    docker ps
+
+Example expected output:
+
+    nginx
+    wordpress
+    mariadb
+
+To display stopped containers:
+
+    docker ps -a
+
+---
+
+# 13.2 Viewing Container Logs
+
+Logs are essential for debugging startup problems.
+
+NGINX:
+
+    docker logs nginx
+
+WordPress:
+
+    docker logs wordpress
+
+MariaDB:
+
+    docker logs mariadb
+
+Follow logs in real time:
+
+    docker logs -f <container_name>
+
+Example:
+
+    docker logs -f wordpress
+
+---
+
+# 13.3 Restarting Services
+
+Restart one container:
+
+    docker restart <container_name>
+
+Example:
+
+    docker restart nginx
+
+Restart the whole stack:
+
+    make stop
+    make start
+
+---
+
+# 13.4 Rebuilding Containers
+
+After modifying a Dockerfile or service configuration:
+
+Build images:
+
+    make build
+
+or:
+
+    docker compose -f srcs/docker-compose.yml build
+
+Restart the stack:
+
+    make up
+
+---
+
+# 13.5 Removing Containers
+
+Remove running containers:
+
+    make down
+
+Equivalent:
+
+    docker compose -f srcs/docker-compose.yml down
+
+This removes:
+
+- Containers.
+- Docker network created by Compose.
+
+Persistent data remains available.
+
+---
+
+# 14. Volume Management and Data Persistence
+
+The project uses persistent storage to keep data outside containers.
+
+The data remains available when:
+
+- Containers are restarted.
+- Images are rebuilt.
+- Containers are recreated.
+
+---
+
+# 14.1 MariaDB Storage
+
+MariaDB data is stored in:
+
+    /home/<user>/data/mariadb
+
+Docker mounts this directory to:
+
+    /var/lib/mysql
+
+inside the MariaDB container.
+
+This contains:
+
+- Database files.
+- User information.
+- WordPress database content.
+
+---
+
+# 14.2 WordPress Storage
+
+WordPress files are stored in:
+
+    /home/<user>/data/wordpress
+
+Docker mounts this directory to:
+
+    /var/www/<domain>
+
+inside the WordPress and NGINX containers.
+
+This contains:
+
+- WordPress core files.
+- Themes.
+- Plugins.
+- Uploaded media.
+- Configuration files.
+
+---
+
+# 14.3 Checking Volumes
+
+List Docker volumes:
+
+    docker volume ls
+
+Inspect a volume:
+
+    docker volume inspect <volume_name>
+
+Inspect container mounts:
+
+    docker inspect wordpress
+
+    docker inspect mariadb
+
+---
+
+# 15. Development Workflow
+
+A typical development workflow:
+
+## 1. Modify source files
+
+Examples:
+
+    srcs/requirements/nginx/nginx.conf
+
+    srcs/requirements/wordpress/entrypoint.sh
+
+---
+
+## 2. Rebuild affected images
+
+Example:
+
+    make build
+
+---
+
+## 3. Restart services
+
+Example:
+
+    make up
+
+---
+
+## 4. Verify operation
+
+Check containers:
+
+    docker ps
+
+Check logs:
+
+    docker logs <container_name>
+
+---
+
+# 16. Cleaning the Project
+
+The Makefile provides several cleanup levels.
+
+---
+
+## Clean containers and images
+
+Command:
+
+    make clean
+
+Removes:
+
+- Containers.
+- Images.
+
+Persistent data remains.
+
+---
+
+## Full cleanup
+
+Command:
+
+    make fclean
+
+Removes:
+
+- Containers.
+- Images.
+- Volumes.
+- Project data.
+
+Specifically:
+
+    /home/<user>/data
+
+is deleted.
+
+This returns the project to a fresh installation state.
+
+---
+
+## Rebuild from scratch
+
+Command:
+
+    make re
+
+Equivalent workflow:
+
+    make clean
+    make up
+
+This recreates the containers.
+
+---
+
+# 17. Troubleshooting
+
+## Build fails
+
+Check:
+
+- Docker daemon is running.
+- Internet access is available.
+- Required packages can be downloaded.
+
+Useful commands:
+
+    docker info
+
+    docker images
+
+    docker system df
+
+---
+
+## Container exits immediately
+
+Check logs:
+
+    docker logs <container_name>
+
+Common causes:
+
+- Missing secret files.
+- Invalid environment configuration.
+- Incorrect permissions.
+- Configuration syntax errors.
+
+---
+
+## WordPress cannot reach MariaDB
 
 Verify:
 
-```bash
-docker exec nginx ss -tlnp | grep 8080
-docker exec wordpress wp option get siteurl --allow-root
-docker exec wordpress wp option get home --allow-root
-```
+MariaDB container:
+
+    docker ps
+
+MariaDB logs:
+
+    docker logs mariadb
+
+WordPress logs:
+
+    docker logs wordpress
+
+The WordPress container depends on MariaDB health status before starting.
 
 ---
 
-**WordPress (PHP-FPM) — change the internal port:**
+## NGINX returns errors
 
-```ini
-# www.conf
-listen = 0.0.0.0:9001
-```
+Check:
 
-Then update NGINX:
+NGINX logs:
 
-```nginx
-# nginx.conf
-fastcgi_pass wordpress:9001;
-```
+    docker logs nginx
 
 Verify:
 
-```bash
-docker exec wordpress ss -tlnp | grep 9001
-docker exec nginx curl -s telnet://wordpress:9001 || echo "port reachable"
-```
+- Certificate files exist.
+- Domain name is correctly configured.
+- WordPress container is running.
 
 ---
 
-**MariaDB — change the internal port:**
+# 18. Development Notes
 
-```ini
-# 50-server.cnf
-port = 3307
-```
+The project follows these principles:
 
-Then update the WordPress setup script:
+- Each service runs in its own container.
+- Containers are built independently.
+- Sensitive values are stored as Docker secrets.
+- Persistent data is stored outside containers.
+- Services communicate only through the dedicated Docker network.
 
-```bash
-# setup_wordpress.sh
-wp config create --dbhost="mariadb:3307" ...
-```
+The Makefile provides a simplified interface while Docker Compose remains the underlying container management system.
 
-Verify:
+# 19. Development Reference
 
-```bash
-docker exec mariadb ss -tlnp | grep 3307
-docker exec mariadb mysqladmin -u root -p"${SQL_ROOT_PASSWORD}" --port=3307 ping
-```
+This section provides a quick reference for common development operations.
 
 ---
 
-## Service Details
+# 19.1 Starting a Development Session
 
-### NGINX Service
+From the project root:
 
-**Purpose:** HTTPS web server and reverse proxy
+    cd inception
 
-**Key files:**
-- `requirements/nginx/Dockerfile`
-- `requirements/nginx/conf/nginx.conf`
-- `requirements/nginx/tools/setup.sh`
+Start the stack:
 
-**Configuration highlights:**
+    make
 
-```nginx
-server {
-    listen 443 ssl;
+Verify containers:
 
-    server_name login.42.fr;
+    docker ps
 
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_certificate /etc/nginx/ssl/nginx.crt;
-    ssl_certificate_key /etc/nginx/ssl/nginx.key;
+Expected services:
 
-    root /var/www/html;
-    index index.php;
-
-    location ~ \.php$ {
-        fastcgi_pass wordpress:9000;
-        fastcgi_index index.php;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    }
-}
-```
-
-**Useful commands:**
-
-```bash
-# Test NGINX configuration
-docker exec nginx nginx -t
-# Reload NGINX
-docker exec nginx nginx -s reload
-# View access logs
-docker exec nginx tail -f /var/log/nginx/access.log
-# View error logs
-docker exec nginx tail -f /var/log/nginx/error.log
-```
+    nginx
+    wordpress
+    mariadb
 
 ---
 
-### WordPress Service
+# 19.2 Accessing Containers
 
-**Purpose:** PHP-FPM application server running WordPress
+Open a shell inside a running container:
 
-**Key files:**
-- `requirements/wordpress/Dockerfile`
-- `requirements/wordpress/conf/www.conf`
-- `requirements/wordpress/tools/setup.sh`
+    docker exec -it <container_name> sh
 
-**Initialization tasks:**
-1. Download WordPress core files
-2. Configure `wp-config.php` with database credentials
-3. Install WordPress via wp-cli
-4. Create admin user
-5. Set up permalinks
+Examples:
 
-**Useful commands:**
+NGINX:
 
-```bash
-# Check WordPress version
-docker exec wordpress wp --info --allow-root
-# List installed plugins
-docker exec wordpress wp plugin list --allow-root
-# Check database connection
-docker exec wordpress wp db check --allow-root
-# Update WordPress core
-docker exec wordpress wp core update --allow-root
-# Create a new post
-docker exec wordpress wp post create --post_title="Hello" --post_content="World" --post_status=publish --allow-root
-```
+    docker exec -it nginx sh
+
+WordPress:
+
+    docker exec -it wordpress sh
+
+MariaDB:
+
+    docker exec -it mariadb sh
 
 ---
 
-### MariaDB Service
+# 19.3 Inspecting Container Configuration
 
-**Purpose:** MySQL-compatible database server
+View container details:
 
-**Key files:**
-- `requirements/mariadb/Dockerfile`
-- `requirements/mariadb/conf/my.cnf`
-- `requirements/mariadb/tools/setup.sh`
+    docker inspect <container_name>
 
-**Initialization tasks:**
-1. Initialize MySQL data directory
-2. Set root password
-3. Create WordPress database
-4. Create WordPress user with privileges
+Useful information:
 
-**Useful commands:**
-
-```bash
-# Connect to MySQL CLI
-docker exec -it mariadb mysql -u root -p
-# Show all databases
-docker exec mariadb mysql -u root -p -e "SHOW DATABASES;"
-# Show WordPress tables
-docker exec mariadb mysql -u root -p wordpress -e "SHOW TABLES;"
-```
+- Mounted volumes.
+- Environment.
+- Network configuration.
+- Container state.
 
 ---
 
-## Debugging
+# 19.4 Inspecting the Docker Network
 
-### SSL/TLS Issues
+The project uses the network:
 
-```bash
-# Test TLS connectivity
-openssl s_client -connect login.42.fr:443 -tls1_2
-openssl s_client -connect login.42.fr:443 -tls1_3
+    inception
 
-# Inspect certificate details
-docker exec nginx openssl x509 -in /etc/nginx/ssl/nginx.crt -text -noout
+View networks:
 
-# Verify NGINX configuration
-docker exec nginx nginx -t
-```
+    docker network ls
 
----
+Inspect the project network:
 
-## Security Considerations
+    docker network inspect inception
 
-### SSL/TLS Configuration
+This allows checking:
 
-**Generate a self-signed certificate:**
-
-```bash
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout nginx.key -out nginx.crt \
-    -subj "/C=FR/ST=Paris/L=Paris/O=42/CN=login.42.fr"
-```
-
-**Enforce TLS 1.2 / 1.3 in NGINX:**
-
-```nginx
-ssl_protocols TLSv1.2 TLSv1.3;
-ssl_prefer_server_ciphers on;
-ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256';
-```
-
-### Network Security
-
-```yaml
-networks:
-  inception:
-    driver: bridge
-
-ports:
-  - "443:443"  # Only HTTPS exposed
-```
+- Connected containers.
+- Network configuration.
+- Container IP addresses.
 
 ---
 
-## Data Storage and Persistence
+# 20. Project Data Lifecycle
 
-### Storage Locations
+The project separates application code and persistent data.
 
-**On the host machine:**
+## Application code
 
-```
-/home/login/data/
-├── wordpress/          # WordPress installation files
-│   ├── wp-content/
-│   ├── wp-config.php
-│   └── ...
-└── mariadb/            # MariaDB database files
-    ├── mariaDB/
-    ├── wordpress/
-    └── ...
-```
+Stored in the repository:
 
-**Inside containers:**
+    srcs/
 
-| Service | Path |
-|---|---|
-| WordPress | `/var/www/html/` |
-| MariaDB | `/var/lib/mysql/` |
-| NGINX | No persistent data (config baked into image) |
+Modified through:
+
+- Dockerfiles.
+- Configuration files.
+- Entrypoint scripts.
+
+Changes require rebuilding containers.
 
 ---
 
-## Useful Commands Reference
+## Persistent data
 
-### Project Management
+Stored outside containers:
 
-```bash
-make              # Build and start everything
-make down         # Stop services
-make fclean       # Clean everything (destructive)
-make re           # Full rebuild from scratch (destructive)
-```
+    /home/<user>/data/
 
-### Docker Compose
+Contains:
 
-```bash
-docker-compose -f srcs/docker-compose.yml ps               # List services
-docker-compose -f srcs/docker-compose.yml logs -f          # Follow all logs
-docker-compose -f srcs/docker-compose.yml restart nginx    # Restart a service
-docker-compose -f srcs/docker-compose.yml exec wordpress sh # Enter a container
-```
+    wordpress/
 
-### Container Management
+and:
 
-```bash
-docker ps               # List running containers
-docker ps -a            # List all containers
-docker logs <name>      # View container logs
-docker exec -it <name> sh  # Enter a container
-docker inspect <name>   # Detailed container info
-```
+    mariadb/
 
-### Volume Management
+This data survives:
 
-```bash
-docker volume ls                       # List volumes
-docker volume inspect <name>           # Volume details
-du -sh /home/$(whoami)/data/*          # Check data size on host
-```
-
-### Network Management
-
-```bash
-docker network ls                              # List networks
-docker network inspect inception_inception     # Network details
-```
-
-### System Cleanup
-
-```bash
-docker system df           # Show disk usage
-docker system prune -a     # Remove all unused resources
-```
+- Container deletion.
+- Image rebuild.
+- Docker Compose recreation.
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** February 2026  
-**Project:** 42 Inception — Developer Reference
+# 21. Resetting the Development Environment
+
+When testing a fresh installation, remove all generated data:
+
+    make fclean
+
+Then recreate:
+
+    make
+
+The project will:
+
+1. Generate new certificates.
+2. Generate new secrets.
+3. Initialize a new database.
+4. Install WordPress again.
+
+---
+
+# 22. Adding Changes to the Project
+
+When modifying an existing service:
+
+Example:
+
+    srcs/requirements/nginx/
+
+or:
+
+    srcs/requirements/wordpress/
+
+The usual workflow is:
+
+1. Edit files.
+2. Rebuild images.
+
+        make build
+
+3. Restart containers.
+
+        make up
+
+4. Verify logs.
+
+        docker logs <container_name>
+
+---
+
+# 23. Important Files Reference
+
+| File | Purpose |
+|------|---------|
+| Makefile | Main project automation |
+| docker-compose.yml | Container orchestration |
+| .env | Local configuration |
+| template_env | Environment template |
+| nginx.conf | NGINX configuration template |
+| nginx Dockerfile | Builds NGINX image |
+| wordpress Dockerfile | Builds WordPress/PHP-FPM image |
+| mariadb Dockerfile | Builds MariaDB image |
+| entrypoint.sh files | Container initialization scripts |
+| tools/create_secrets.sh | Secret generation |
+| tools/create_env.sh | Environment generation |
+
+---
+
+# 24. Final Developer Checklist
+
+Before considering the project correctly deployed:
+
+## Environment
+
+Check:
+
+    .env
+
+exists and contains required values.
+
+---
+
+## Secrets
+
+Check:
+
+    tools/secrets/
+
+contains generated secret files.
+
+---
+
+## Certificates
+
+Check:
+
+    tools/certs/
+
+contains:
+
+- Root CA certificate.
+- NGINX certificate.
+- Private key.
+
+---
+
+## Containers
+
+Check:
+
+    docker ps
+
+shows:
+
+- nginx
+- wordpress
+- mariadb
+
+---
+
+## Storage
+
+Check:
+
+    /home/<user>/data/
+
+contains:
+
+- wordpress data.
+- mariadb data.
+
+---
+
+# 25. Summary
+
+The development workflow is:
+
+1. Configure environment.
+
+       .env
+
+2. Generate secrets and certificates.
+
+       make
+
+3. Build containers.
+
+       make build
+
+4. Start services.
+
+       make up
+
+5. Manage containers using Docker commands.
+
+       docker ps
+       docker logs
+       docker exec
+
+6. Persistent data is maintained outside containers.
+
+       /home/<user>/data/
+
+The project uses Docker Compose for orchestration and the Makefile as a simplified developer interface.

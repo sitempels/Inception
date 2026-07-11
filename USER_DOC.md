@@ -1,515 +1,582 @@
 # User Documentation
 
-*This document explains how to use and manage the Inception infrastructure as an end user or administrator.*
+## Inception Project
+
+This document explains how to use and administer the Inception project stack.
+
+The goal of this document is to provide simple instructions for:
+- understanding the services provided by the stack,
+- starting and stopping the project,
+- accessing the website and administration panel,
+- managing credentials,
+- checking that services are running correctly.
+
+This documentation assumes that the user does not need advanced Docker knowledge.
 
 ---
 
-## Table of Contents
+# 1. Overview
 
-- [What is Inception?](#what-is-inception)
-- [Services Provided](#services-provided)
-- [Getting Started](#getting-started)
-- [Starting and Stopping the Project](#starting-and-stopping-the-project)
-- [Accessing the Services](#accessing-the-services)
-- [Managing Credentials](#managing-credentials)
-- [Checking Service Health](#checking-service-health)
-- [Common Tasks](#common-tasks)
-- [Troubleshooting](#troubleshooting)
-- [FAQ](#faq)
+The Inception project runs a complete web application stack inside Docker containers.
 
----
+The stack provides:
 
-## What is Inception?
+- A secure HTTPS entry point.
+- A WordPress website.
+- A MariaDB database used by WordPress.
+- Persistent storage so that data remains available after restarting containers.
 
-Inception is a web infrastructure that provides a WordPress website with a secure database, served through an HTTPS web server. Everything runs in isolated Docker containers for security and easy management.
-
-**In simple terms:** It's a complete website hosting setup that you can start, stop, and manage with simple commands.
+The services are isolated in separate containers and communicate through a private Docker network.
 
 ---
 
-## Services Provided
+# 2. Services Provided
 
-The infrastructure provides three main services:
+## NGINX
 
-### 1. **WordPress Website**
-- A fully functional WordPress site where you can create posts, pages, and manage content
-- Accessible via a web browser at `https://login.42.fr`
-- Includes an admin panel for site management
+NGINX is the public entry point of the infrastructure.
 
-### 2. **NGINX Web Server**
-- Handles all incoming web requests securely (HTTPS only)
-- Acts as the entry point to your website
-- Provides SSL/TLS encryption for secure connections
+Its responsibilities are:
 
-### 3. **MariaDB Database**
-- Stores all WordPress data (posts, pages, users, settings)
-- Runs in the background (not directly accessible from outside)
-- Data is stored persistently and survives restarts
+- Accept incoming web requests.
+- Provide HTTPS encryption.
+- Redirect HTTP traffic to HTTPS.
+- Forward PHP requests to the WordPress container.
 
-All services work together automatically and restart if they crash.
+The user only interacts directly with NGINX.
+
+The service is accessible through:
+https://login.42.fr
+
 
 ---
 
-## Getting Started
+## WordPress
 
-### Prerequisites
+WordPress provides the website interface.
 
-Before using the infrastructure, ensure:
-- You are on the virtual machine where Inception is installed
-- Docker is running
-- Your domain name is configured (see README.md installation section)
+It handles:
 
-### First Time Setup
+- Website pages.
+- User accounts.
+- Administration interface.
+- Content management.
 
-If this is your first time using Inception:
+The WordPress administration panel is available at:
+https://login.42.fr/wp-admin
 
-1. Verify Docker is running:
-```bash
-docker ps
-```
-
-2. Confirm the domain is configured:
-```bash
-cat /etc/hosts | grep 42.fr
-# Should show: 127.0.0.1 login.42.fr
-```
-
-3. Check that data directories exist:
-```bash
-ls -la /home/$(whoami)/data/
-# Should show: wordpress/ and mariadb/ directories
-```
 
 ---
 
-## Starting and Stopping the Project
+## MariaDB
 
-### Starting the Infrastructure
+MariaDB stores the website data.
 
-To start all services:
+It contains:
+
+- WordPress configuration data.
+- User accounts.
+- Posts and pages.
+- Website settings.
+
+MariaDB is not directly accessible from outside the Docker network.
+
+---
+
+# 3. Starting the Project
+
+## First installation
+
+Before starting the project, the administrator must configure the environment file.
+
+If a `template_env` file is available:
 
 ```bash
 make
-```
+The installation process will:
 
-This single command will automatically:
-1. ✅ Verify your `.env` file exists and update user paths
-2. ✅ Add your domain to `/etc/hosts` (if not already there)
-3. ✅ Display the Inception logo
-4. ✅ Create required volume directories
-5. ✅ Build all Docker images
-6. ✅ Start all containers
+Create the .env file.
+Ask for required configuration values.
+Generate certificates.
+Generate secrets.
+Create persistent storage directories.
+Build and start the containers.
+Starting the stack
 
-**Wait time:** The first start may take 2-5 minutes to download packages and build everything.
+To start the project:
 
-**What you'll see:**
-- Green messages for successful steps
-- Yellow messages for informational output
-- ASCII art logo for Inception
-- "Containers are up and running!" when complete
+make
 
-**Verification:** Check that all three containers are running:
-```bash
-docker ps
-# Look for: nginx, wordpress, mariadb containers with status "Up"
-```
+or:
 
-### Stopping the Infrastructure
-
-To stop all services (but keep your data):
-
-```bash
-make down
-```
-
-This command will:
-- Stop all running containers
-- Remove containers
-- **Keep all your data safe** in volumes
-
-**Note:** Your WordPress site and database are preserved and will be available when you start again.
-
-### Restarting After Stopping
-
-If you stopped with `make down`, simply restart with:
-
-```bash
 make up
-```
 
-Your data is still there - WordPress will continue where you left off.
+The first launch may take some time because:
 
-### Complete Reset (Dangerous!)
+Docker images are built.
+The database is initialized.
+WordPress is downloaded and configured automatically.
+4. Stopping the Project
 
-To delete everything and start fresh:
+To stop the running containers:
 
-```bash
-make fclean
-```
+make stop
 
-**⚠️  WARNING:** This will:
-- Stop and remove all containers
-- Delete all Docker images
-- Delete all Docker volumes
-- **Delete ALL your WordPress content and database permanently!**
+This stops services but keeps containers and data.
 
-Only use this if you want to completely start over.
+To completely stop and remove containers:
 
-### Rebuild Without Data Loss
-
-If you need to rebuild containers but keep your data:
-
-```bash
-make down          # Stop containers
-make build         # Rebuild images
-make up            # Start containers again
-```
-
-This preserves your data while rebuilding the infrastructure.
-
----
-
-## Accessing the Services
-
-### Accessing the WordPress Website
-
-1. **Open your web browser**
-2. **Navigate to:** `https://login.42.fr` (replace `login` with your actual login)
-3. **Accept the certificate warning:**
-   - Click "Advanced" or "Show details"
-   - Click "Accept risk and continue" or "Proceed to site"
-   - This is normal because we use a self-signed certificate
-
-4. **You should see your WordPress site!**
-
-### Accessing the WordPress Admin Panel
-
-To manage your WordPress site (create posts, change themes, install plugins):
-
-1. **Go to:** `https://login.42.fr/wp-admin`
-2. **Log in with your credentials** (see [Managing Credentials](#managing-credentials))
-3. **You're now in the WordPress dashboard** where you can:
-   - Write posts and pages
-   - Change site appearance
-   - Manage users
-   - Configure settings
-
-### What You Can Do in WordPress
-
-As an administrator, you can:
-- Create and edit blog posts
-- Create pages (About, Contact, etc.)
-- Change themes and customize appearance
-- Install and configure plugins
-- Manage users and permissions
-- Configure site settings (title, tagline, etc.)
-- View site statistics
-
----
-
-## Managing Credentials
-
-### Where Credentials are Stored
-
-All passwords and sensitive information are stored in two places:
-
-1. **`.env` file:** Located at `srcs/.env`
-   - Contains database/user credentials, WordPress admin info, domain name 
-   - **Never share this file or commit it to Git!**
-
-
-
-### Viewing Your Credentials
-
-To view your login credentials:
-
-```bash
-cat srcs/.env
-```
-
-You'll see something like:
-```
-DOMAIN_NAME=login.42.fr
-SQL_DATABASE=example_db
-SQL_USER=example_user
-SQL_PASSWORD=example_password
-SQL_ROOT_PASSWORD=example_root_password
-WP_ADMIN_USER=example_admin
-WP_ADMIN_PASSWORD=example_admin_password
-WP_ADMIN_EMAIL=[admin@example.org](mailto:admin@example.org)
-WP_USER=example_username
-WP_USER_PASSWORD=example_user_password
-WP_USER_EMAIL=[user@example.xyz](mailto:user@example.xyz)
-SQL_DATA_PATH=/home/login/data/mysql
-WP_DATA_PATH=/home/login/data/wordpress
-```
-
-### Important Credential Rules
-
-1. **Never use these usernames for WordPress admin:**
-   - admin
-   - administrator
-   - Admin
-   - Administrator
-   - admin-123
-   - (Any variation containing "admin" or "administrator")
-
-2. **Keep credentials secure:**
-   - Don't share your `.env` file
-   - Don't commit credentials to Git
-   - Use strong passwords
-   - Change default passwords
-
-### Changing Credentials
-
-To change your credentials:
-
-1. **Stop the infrastructure:**
-```bash
 make down
-```
 
-2. **Edit the `.env` file:**
-```bash
-vim srcs/.env
-# Modify the passwords/usernames as needed
-```
+The persistent data is kept.
 
-3. **Rebuild and restart:**
-```bash
+To restart the complete installation:
+
 make re
-```
 
-**Warning:** Changing database credentials requires rebuilding everything, which will erase existing data!
+This rebuilds the project after cleaning containers and images.
 
----
+Warning:
+make fclean removes all project data.
 
-## Checking Service Health
+make fclean
 
-### Quick Health Check
+will remove:
 
-To see if all services are running:
+Docker containers.
+Docker images.
+Docker volumes.
+WordPress data.
+MariaDB database files.
 
-```bash
-docker ps
-```
+Use this only when a complete reset is required.
 
-**What you should see:**
-- Three containers: `nginx`, `wordpress`, `mariadb`
-- Status column should show "Up" with uptime
-- No containers should show "Restarting" or "Exited"
+# 5. Accessing the Website
 
-**Example of healthy output:**
-```
-CONTAINER ID   IMAGE              STATUS          PORTS                  NAMES
-abc123def456   inception_nginx    Up 5 minutes    0.0.0.0:443->443/tcp   nginx
-def456ghi789   inception_wordpress Up 5 minutes                          wordpress
-ghi789jkl012   inception_mariadb  Up 5 minutes    3306/tcp               mariadb
-```
+After the containers are running, the website is available through HTTPS:
 
-### Detailed Service Check
+    https://login.42.fr
 
-To check if a specific service has errors:
+The connection uses a custom certificate generated during installation.
 
-```bash
-# Check NGINX logs
-docker logs nginx
+If the browser displays a certificate warning, this is expected.
 
-# Check WordPress logs
-docker logs wordpress
+The certificate is not signed by a public certificate authority. It is signed by a local Certificate Authority created for this project.
 
-# Check MariaDB logs
-docker logs mariadb
-```
-
-Look for:
-- ✅ **Good signs:** "ready for connections", "started successfully", "listening on port"
-- ❌ **Bad signs:** "error", "failed", "connection refused", "timeout"
-
-### Testing Website Connectivity
-
-To verify the website is accessible:
-
-```bash
-# Test HTTPS connection
-curl -k https://login.42.fr
-
-# Should return HTML content, not an error
-```
-
-Or simply open `https://login.42.fr` in your browser.
-
-### Checking Data Persistence
-
-To verify your data is being saved:
-
-```bash
-# Check volume sizes
-du -sh /home/$(whoami)/data/*
-
-# Check that WordPress files exist
-ls -la /home/$(whoami)/data/wordpress/
-
-# Check that database files exist
-ls -la /home/$(whoami)/data/mariadb/
-```
+To remove the warning, the local root CA certificate must be trusted by the operating system.
 
 ---
 
-## Common Tasks
+# 6. Trusting the Certificate Authority
 
-### Viewing Logs in Real-Time
+## Why does the browser show a warning?
 
-To watch logs as they happen:
+Public websites usually use certificates signed by trusted certificate authorities.
 
-```bash
-# All services
-docker-compose -f srcs/docker-compose.yml logs -f
+This project creates its own certificate authority locally because it is designed to run inside a private environment.
 
-# Specific service
-docker-compose -f srcs/docker-compose.yml logs -f wordpress
-```
-
-Press `Ctrl+C` to stop viewing logs.
-
-### Checking Disk Space
-
-To see how much space the infrastructure is using:
-
-```bash
-# Check volume sizes
-du -sh /home/$(whoami)/data/*
-
-# Check Docker disk usage
-docker system df
-```
+The browser does not automatically trust this certificate authority, so it displays a warning.
 
 ---
 
-## Troubleshooting
+## Trusting the generated root CA
 
-### Problem: Cannot access the website
+The generated root certificate is located in:
 
-**Symptoms:** Browser shows "This site can't be reached" or "Connection refused"
+    tools/certs/ca.crt
 
-**Solutions:**
-1. Check if containers are running: `docker ps`
-2. Check if the domain is configured: `cat /etc/hosts | grep 42.fr`
-3. Check NGINX logs: `docker logs nginx`
-4. Verify port 443 is not used by another service: `sudo lsof -i :443`
+The exact installation procedure depends on the operating system.
 
-### Problem: SSL Certificate Warning
+### Debian / Linux
 
-**Symptoms:** Browser shows "Your connection is not private" or similar
+Copy the certificate:
 
-**This is normal!** The project uses a self-signed certificate.
+    sudo cp tools/certs/ca.crt /usr/local/share/ca-certificates/inception-ca.crt
 
-**Solution:** Click "Advanced" → "Proceed to site" or "Accept risk"
+Update the certificate store:
 
-### Problem: WordPress shows "Error establishing database connection"
+    sudo update-ca-certificates
 
-**Symptoms:** WordPress site displays a database connection error
+Restart the browser.
 
-**Solutions:**
-1. Check if MariaDB is running: `docker ps | grep mariadb`
-2. Check MariaDB logs: `docker logs mariadb`
-3. Verify credentials in `.env` file match what WordPress expects
-4. Restart everything: `make down && make`
+After this operation, the browser should trust:
 
-### Problem: Containers keep restarting
-
-**Symptoms:** `docker ps` shows containers constantly restarting
-
-**Solutions:**
-1. Check logs for errors: `docker logs <container_name>`
-2. Verify configuration files have no syntax errors
-3. Check that required volumes exist: `ls /home/$(whoami)/data/`
-4. Rebuild from scratch: `make fclean && make`
-
-### Problem: "Port already in use"
-
-**Symptoms:** Error message about port 443 being in use
-
-**Solutions:**
-```bash
-# Find what's using port 443
-sudo lsof -i :443
-
-# If it's another service (like Apache or NGINX)
-sudo systemctl stop nginx
-sudo systemctl stop apache2
-
-# Then try starting again
-make
-```
-
-### Problem: Permission denied on volumes
-
-**Symptoms:** Errors about not being able to write to `/home/login/data/`
-
-**Solutions:**
-```bash
-# Fix ownership
-sudo chown -R $(whoami):$(whoami) /home/$(whoami)/data/
-
-# Fix permissions
-sudo chmod -R 755 /home/$(whoami)/data/
-```
+    https://login.42.fr
 
 ---
 
-## FAQ
+# 7. Accessing the WordPress Administration Panel
 
-### Q: How do I know if everything is working?
+The WordPress administration interface is available at:
 
-**A:** Run `docker ps` and verify all three containers show "Up" status. Then visit `https://login.42.fr` in your browser and you should see your WordPress site.
+    https://login.42.fr/wp-admin
 
-### Q: Can I use HTTP instead of HTTPS?
+The administrator account is created automatically during the first installation.
 
-**A:** No. The project only supports HTTPS on port 443. HTTP on port 80 is not available by design for security reasons.
+The credentials are defined during setup through the environment configuration.
 
-### Q: How do I reset everything and start fresh?
+Required information:
 
-**A:** Run `make fclean` to remove all containers, images, and data. Then run `make` to rebuild from scratch. **Warning: This deletes all your data!**
+- Administrator username.
+- Administrator password.
+- Administrator email.
 
-### Q: Where is my WordPress data stored?
+Example:
 
-**A:** Your data is stored in two locations:
-- WordPress files: `/home/login/data/wordpress/`
-- Database: `/home/login/data/mariadb/`
+    Username: <WP_ADMIN_USER>
+    Password: <WP_ADMIN_PASSWORD>
 
-### Q: Can I access the database directly?
-
-**A:** The database is not exposed externally for security. To interact with it, you can enter the MariaDB container:
-```bash
-docker exec -it mariadb mysql -u root -p
-```
-
-### Q: What happens if I reboot the VM?
-
-**A:** Docker containers will not start automatically on reboot. You need to run `make` again after reboot. Your data in volumes will be preserved.
-
-### Q: Can I install WordPress plugins?
-
-**A:** Yes! Log in to the WordPress admin panel (`https://login.42.fr/wp-admin`) and you can install and manage plugins like any normal WordPress installation.
-
-### Q: How do I update WordPress?
-
-**A:** WordPress updates can be done through the admin panel. However, for security, it's recommended to test updates in a backup copy first.
-
-### Q: Is this setup production-ready?
-
-**A:** This is an educational project. For production use, you would need:
-- A real SSL certificate (not self-signed)
-- A proper domain name (not .42.fr)
-- Additional security hardening
-- Backup and monitoring solutions
-- Regular security updates
+Replace these placeholders with the values configured during installation.
 
 ---
 
+# 8. Credential Management
 
+The project uses several types of credentials.
 
-**Document Version:** 1.0  
-**Last Updated:** February 2026  
-**For:** 42 Inception Project
+Credentials are never stored directly inside Docker Compose environment variables.
+
+Instead, sensitive information is stored using Docker secrets.
+
+---
+
+## Environment configuration
+
+The `.env` file is used during installation.
+
+It contains configuration values and references used to generate secrets.
+
+The `.env` file must not be committed to Git.
+
+Example location:
+
+    .env
+
+---
+
+## Docker secrets
+
+Docker secrets contain sensitive values such as:
+
+- MariaDB database name.
+- MariaDB root password.
+- MariaDB user password.
+- WordPress administrator credentials.
+- WordPress user credentials.
+
+Secrets are generated during installation.
+
+They are stored locally in:
+
+    tools/secrets/
+
+Inside containers, secrets are available through:
+
+    /run/secrets/
+
+---
+
+## WordPress credentials
+
+The project creates:
+
+### Administrator account
+
+Used to manage WordPress.
+
+Defined by:
+
+    WP_ADMIN_USER
+    WP_ADMIN_PASSWORD
+    WP_ADMIN_EMAIL
+
+---
+
+### Regular WordPress user
+
+Created automatically during installation.
+
+Defined by:
+
+    WP_USER
+    WP_USER_PASSWORD
+    WP_USER_EMAIL
+
+---
+
+## Changing credentials
+
+To change credentials after installation:
+
+1. Log into the WordPress administration panel.
+2. Update users from the WordPress interface.
+
+For database credentials or Docker secrets:
+
+1. Stop the project.
+2. Update the configuration.
+3. Recreate the containers if required.
+
+Changing database credentials on an already initialized installation requires updating the WordPress database configuration as well.
+
+---
+
+# 9. Checking Service Status
+
+The simplest way to verify that containers are running:
+
+    docker ps
+
+A successful installation should show:
+
+- nginx
+- wordpress
+- mariadb
+
+with the status:
+
+    Up
+
+---
+
+# 10. Checking Logs
+
+Logs are useful when a service does not start correctly.
+
+## NGINX logs
+
+    docker logs nginx
+
+## WordPress logs
+
+    docker logs wordpress
+
+## MariaDB logs
+
+    docker logs mariadb
+
+---
+
+# 11. Additional Docker Checks
+
+Display all containers:
+
+    docker ps -a
+
+Inspect a container:
+
+    docker inspect <container_name>
+
+Check Docker networks:
+
+    docker network ls
+
+Check Docker volumes:
+
+    docker volume ls
+
+These commands help administrators identify configuration or startup problems.
+
+# 12. Managing Persistent Data
+
+The project stores important data outside the containers.
+
+This ensures that restarting or rebuilding containers does not delete the website or database.
+
+The persistent data locations are:
+
+    /home/<user>/data/wordpress
+
+Contains:
+
+- WordPress files.
+- Website content.
+- WordPress configuration.
+
+---
+
+    /home/<user>/data/mariadb
+
+Contains:
+
+- MariaDB database files.
+- Website database information.
+
+---
+
+# 13. Backup Recommendations
+
+The project data should be backed up regularly.
+
+Important directories:
+
+    /home/<user>/data/wordpress
+    /home/<user>/data/mariadb
+
+A backup can be created by copying these directories to another storage location.
+
+Example:
+
+    cp -r /home/<user>/data /backup/inception/
+
+The backup should only be performed when the services are stopped or when database consistency is guaranteed.
+
+---
+
+# 14. Common Problems
+
+## Website is unreachable
+
+Check that the containers are running:
+
+    docker ps
+
+Expected services:
+
+- nginx
+- wordpress
+- mariadb
+
+If a service is missing, check its logs:
+
+    docker logs <container_name>
+
+---
+
+## Browser certificate warning
+
+Cause:
+
+The browser does not trust the local Certificate Authority.
+
+Solution:
+
+Install the generated root CA certificate:
+
+    tools/certs/ca.crt
+
+into the operating system certificate store.
+
+---
+
+## WordPress cannot connect to the database
+
+Check MariaDB status:
+
+    docker logs mariadb
+
+Check WordPress logs:
+
+    docker logs wordpress
+
+The database container must be running before WordPress can start correctly.
+
+---
+
+## Website changes disappear after restart
+
+The project uses persistent storage.
+
+If data disappears, check that the volumes are correctly mounted:
+
+    docker inspect wordpress
+
+    docker inspect mariadb
+
+---
+
+# 15. Useful Administration Commands
+
+## View running containers
+
+    docker ps
+
+---
+
+## Restart a service
+
+Example:
+
+    docker restart nginx
+
+---
+
+## Stop all services
+
+    make stop
+
+---
+
+## Start all services
+
+    make start
+
+---
+
+## Rebuild the project
+
+    make re
+
+This recreates the containers and images.
+
+Persistent data is preserved.
+
+---
+
+# 16. Complete Reset
+
+To remove all Docker resources created by the project:
+
+    make fclean
+
+This removes:
+
+- Containers.
+- Images.
+- Volumes.
+- Website files.
+- Database files.
+
+After this operation, the installation must be performed again.
+
+Use this command only when a complete reset is intended.
+
+---
+
+# 17. Summary
+
+The Inception stack provides:
+:w
+| Service | Purpose |
+|---------|---------|
+| NGINX | HTTPS web entry point |
+| WordPress | Website and administration interface |
+| MariaDB | Database storage |
+
+Main user actions:
+
+Start:
+
+    make
+
+Stop:
+
+    make stop
+
+Check status:
+
+    docker ps
+
+View logs:
+
+    docker logs <container_name>
+
+Website:
+
+    https://login.42.fr
+
+Administration panel:
+
+    https://login.42.fr/wp-admin
+
+The project keeps website and database data persistent through storage mounted outside the containers.
