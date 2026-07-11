@@ -101,6 +101,7 @@ inception/
 	└── wordpress/
 	    ├── Dockerfile
 	    └── entrypoint.sh       # Wordpress entrypoint script
+```
 
 
 # 3. Configuration Files
