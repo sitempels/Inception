@@ -74,6 +74,7 @@ A VM is required because the project requires:
 
 Main project layout:
 
+```
 inception/
 ├── Makefile                        # Build automation
 ├── README.md                       # Project overview
@@ -100,7 +101,7 @@ inception/
 	└── wordpress/
 	    ├── Dockerfile
 	    └── entrypoint.sh       # Wordpress entrypoint script
-
+```
 
 # 3. Configuration Files
 
