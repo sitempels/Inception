@@ -93,6 +93,8 @@ If a `template_env` file is available:
 
 ```bash
 make
+```
+
 The installation process will:
 
 Create the .env file.
@@ -105,17 +107,22 @@ Starting the stack
 
 To start the project:
 
+```bash
 make
+```
 
 or:
 
+```bash
 make up
+```
 
 The first launch may take some time because:
 
 Docker images are built.
 The database is initialized.
 WordPress is downloaded and configured automatically.
+
 4. Stopping the Project
 
 To stop the running containers:
