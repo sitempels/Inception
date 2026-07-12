@@ -51,7 +51,7 @@ env:
 
 .env:
 	@if [ -f template_env ]; then \
-		echo "Creating .env file, please set all variables"
+		echo "Creating .env file, please set all variables"; \
 		cp template_env	.env; \
 		vim -c 'set shortmess+=I' .env; \
 	else \
