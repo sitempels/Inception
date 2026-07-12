@@ -18,5 +18,8 @@ openssl req -x509 -new -nodes \
 	    -days 30 \
 	    -out ca.crt 
 
-sudo cp ca.crt /usr/local/share/ca-certificates/inception-root-ca.cert
+if [ -f "/usr/local/share/ca-certificates/inception-root-ca.cert" ]; then
+	sudo rm -rf "/usr/local/share/ca-certificates/inception-root-ca.crt"
+fi
+sudo cp ca.crt /usr/local/share/ca-certificates/inception-root-ca.crt
 sudo update-ca-certificates

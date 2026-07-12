@@ -10,7 +10,10 @@ ENV_FILE:="$(LOCATION)/.env"
 COMPOSE_FILE:="$(LOCATION)"/srcs/docker-compose.yml 
 
 include .env.mk
-.env.mk: .env env
+
+export
+
+.env.mk: env
 
 all: host certs secrets up
 
@@ -39,7 +42,7 @@ certs:
 		bash $(TOOLS_DIR)/cert_creation.sh $(CERT_DIR) $(IP) nginx; \
 	fi
 
-env:
+env: .env
 	@if [ ! -f "$(TOOLS_DIR)"/create_env.sh ] || [ ! -f "$(TOOLS_DIR)"/check_env.sh ]; then \
 	    echo "Missing env handlers"; \
 	    exit 1; \
@@ -91,14 +94,17 @@ clean: down
 	@docker ps -a
 	@docker image rm $$(docker image ls -q) 2>/dev/null || true
 	@docker image ls
+	@sudo rm -rf $(SECRET_DIR)
+	@rm -rf .env.mk
 
 fclean: clean
 	@docker volume rm $$(docker volume ls -q) 2>/dev/null || true
 	@docker volume ls
 	@sudo rm -rf "/home/$(USER)/data"
+	@sudo rm -rf $(CERT_DIR)
 
-re: clean up
+re: clean all
 
-fre: fclean up
+fre: fclean all
 
 .PHONY: all host certs env secrets build up down start stop clean fclean re fre
