@@ -3,7 +3,7 @@
 # Inception
 
 Inception is *42 School* project.
-It aims to broaden our knowledge of system administration by using Docker and a Virtual Machine.
+It aims to broaden our knowledge of system administration by using Docker in a Virtual Machine.
 
 ---
 
@@ -54,6 +54,7 @@ All these services run in dedicated containers and follow Docker best practices.
 **Virtual Machine**(VM) running a Linux distribution
 
 The VM needs the following programs installed:
+- Docker
 - Docker Compose
 - Make
 - Sudo
@@ -61,7 +62,7 @@ The VM needs the following programs installed:
 - Bash
 - Openssl
 
-Any ports used in the VM to communicate with th world need to be open in your hypervisor.
+Any ports used in the VM to communicate with the world need to be open in your hypervisor.
 
 **Virtual Machine User**
 

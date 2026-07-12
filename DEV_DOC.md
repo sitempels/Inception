@@ -1,3 +1,4 @@
+*This project has been created as part of the 42 curriculum by stempels*
 # Developer Documentation
 
 ## Inception Project
@@ -1271,3 +1272,21 @@ The development workflow is:
        /home/<user>/data/
 
 The project uses Docker Compose for orchestration and the Makefile as a simplified developer interface.
+
+## Authors
+
+**Author:** Simon Tempels
+
+**42 Login:** `stempels`
+
+
+## License
+
+This project is part of the 42 school curriculum.  
+For educational purposes only.
+
+---
+
+**Last Updated:** July 2026  
+**Project:** Inception  
+**School:** 42
