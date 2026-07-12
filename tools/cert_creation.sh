@@ -40,14 +40,14 @@ if [ ! -f ${CERT_NAME}.csr ]; then
     prompt = no
 
     [req_distinguished_name]
-    CN = ${SUBJ}
+    CN = ${DOMAIN_NAME}
 
     [v3_req]
     subjectAltName = @alt_names
 
     [alt_names]
-    IP.1 = ${SUBJ}
     DNS.1=${CERT_NAME}
+	DNS.2=${DOMAIN_NAME}
 EOF
     openssl req -new \
 	    -key ${CERT_NAME}.key \
