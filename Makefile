@@ -102,8 +102,6 @@ fclean: clean
 	@docker volume ls
 	@sudo rm -rf "/home/$(USER)/data"
 	@sudo rm -rf $(CERT_DIR)
-	@sudo rm -rf /usr/local/share/ca-certificates/inception-root-ca.crt
-	@sudo update-ca-certificates
 
 re: clean all
 
